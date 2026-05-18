@@ -1,0 +1,26 @@
+# dependencies
+node_modules
+
+# next
+.next
+
+# build
+dist
+
+# env
+.env
+
+# logs
+*.log
+
+# macOS
+.DS_Store
+
+# vscode
+.vscode
+
+# prisma
+prisma/dev.db
+
+# turbopack
+.turbo
