@@ -36,7 +36,7 @@ Sistema fullstack de reservas inspirado em plataformas como Airbnb e Booking.com
 # Estrutura do Projeto
 
 ```txt
-POO TS/
+booking-system-fullstack/
 ├── booking-system/       ← Backend/API
 └── booking-frontend/     ← Frontend Next.js
 ```
