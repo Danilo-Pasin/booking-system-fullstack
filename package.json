@@ -1,0 +1,16 @@
+{
+  "name": "poo-ts",
+  "version": "1.0.0",
+  "description": "Sistema fullstack de reservas inspirado em plataformas como Airbnb e Booking.com, desenvolvido com foco em arquitetura profissional, Clean Architecture, autenticação JWT e integração completa entre frontend e backend.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"cd booking-system && npm run server\" \"cd booking-frontend && npm run dev\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "prettier": "^3.8.3"
+  }
+}

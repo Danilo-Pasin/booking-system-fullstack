@@ -9,6 +9,7 @@ dist
 
 # env
 .env
+.env.local
 
 # logs
 *.log
@@ -16,11 +17,8 @@ dist
 # macOS
 .DS_Store
 
-# vscode
-.vscode
-
 # prisma
-prisma/dev.db
+booking-system/prisma/dev.db
 
-# turbopack
-.turbo
+# vscode
+.vscode/settings.json
