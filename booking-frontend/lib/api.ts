@@ -50,3 +50,14 @@ export async function login(email: string, password: string) {
   });
   return res.json();
 }
+
+export async function cancelBooking(id: string, token: string) {
+  const res = await fetch(`${API_URL}/bookings/${id}`, {
+    method: "DELETE",
+    headers: { "Authorization": `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    const body = await res.json();
+    throw new Error(body.error ?? "Failed to cancel booking");
+  }
+}
