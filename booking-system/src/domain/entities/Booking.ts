@@ -11,7 +11,8 @@ export class Booking {
     public readonly accommodation: Accommodation,
     public readonly checkIn: Date,
     public readonly checkOut: Date,
-    totalPrice: number
+    totalPrice: number,
+    public readonly userId: string
   ) {
     this.id = randomUUID();
     this.createdAt = new Date();

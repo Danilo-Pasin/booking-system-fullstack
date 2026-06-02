@@ -11,6 +11,9 @@ import { CreateBooking } from "./application/use-cases/CreateBooking";
 import { PrismaBookingRepository } from "./infra/repositories/PrismaBookingRepository";
 import { PreviewBookingPrice } from "./application/use-cases/PreviewBookingPrice";
 import { PrismaAccommodationRepository } from "./infra/repositories/PrismaAccommodationRepository";
+import { PrismaUserRepository } from "./infra/repositories/PrismaUserRepository";
+import { RegisterUser } from "./application/use-cases/RegisterUser";
+import { randomUUID } from "crypto";
 
 // ──────────────────────────────────────────────
 // Helper functions
@@ -32,10 +35,21 @@ function separator(label: string) {
 // ──────────────────────────────────────────────
 async function main() {
   const repo = new PrismaAccommodationRepository();
+  const userRepo = new PrismaUserRepository();
+  const registerUser = new RegisterUser(userRepo);
 
   await repo.save(new House("h-001", "Beach House in Florianópolis", 350));
   await repo.save(new Apartment("a-001", "Studio in São Paulo - Pinheiros", 180));
   await repo.save(new SharedRoom("s-001", "Shared Room in Hostel, Búzios", 60));
+
+  // Create a test user to satisfy the required userId on bookings
+  const testEmail = `test-${randomUUID().slice(0, 8)}@example.com`;
+  const testUser = await registerUser.execute({
+    name: "Test User",
+    email: testEmail,
+    password: "password123",
+  });
+  console.log(`\n  Test user created: ${testUser.email} (${testUser.id})`);
 
   const standardFees = [new PlatformFee(), new ServiceFee(0.03)];
   const bookingRepo = new PrismaBookingRepository();
@@ -62,6 +76,7 @@ async function main() {
     accommodationId: "a-001",
     checkIn: futureDate(2),
     checkOut: futureDate(5),
+    userId: testUser.id,
   });
   console.log(aptBooking.summarize());
 
@@ -77,6 +92,7 @@ async function main() {
     accommodationId: "s-001",
     checkIn: futureDate(1),
     checkOut: futureDate(4),
+    userId: testUser.id,
   });
   console.log(sharedBooking.summarize());
 
@@ -87,6 +103,7 @@ async function main() {
       accommodationId: "h-001",
       checkIn: futureDate(10),
       checkOut: futureDate(5),
+      userId: testUser.id,
     });
   } catch (err) {
     console.log(`  ✗ Error caught: ${(err as Error).message}`);

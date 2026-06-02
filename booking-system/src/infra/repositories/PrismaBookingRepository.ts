@@ -15,6 +15,7 @@ export class PrismaBookingRepository implements BookingRepository {
         basePrice:       booking.basePrice,
         totalPrice:      booking.totalPrice,
         accommodationId: booking.accommodation.id,
+        userId:          booking.userId,
       },
     });
   }
@@ -36,16 +37,25 @@ export class PrismaBookingRepository implements BookingRepository {
     return this.toSummary(booking);
   }
   async hasConflict(accommodationId: string, checkIn: Date, checkOut: Date): Promise<boolean> {
-  const conflict = await prisma.booking.findFirst({
-    where: {
-      accommodationId,
-      AND: [
-        { checkIn:  { lt: checkOut } },
-        { checkOut: { gt: checkIn  } },
-      ],
-    },
-  });
-  return conflict !== null;
+    const conflict = await prisma.booking.findFirst({
+      where: {
+        accommodationId,
+        AND: [
+          { checkIn:  { lt: checkOut } },
+          { checkOut: { gt: checkIn  } },
+        ],
+      },
+    });
+    return conflict !== null;
+  }
+
+  async findByUserId(userId: string): Promise<BookingSummary[]> {
+    const bookings = await prisma.booking.findMany({
+      where: { userId },
+      include: { accommodation: true },
+      orderBy: { createdAt: "desc" },
+    });
+    return bookings.map(this.toSummary);
   }
 
   async delete(id: string): Promise<void> {
@@ -60,6 +70,7 @@ export class PrismaBookingRepository implements BookingRepository {
       basePrice:  booking.basePrice,
       totalPrice: booking.totalPrice,
       createdAt:  booking.createdAt,
+      userId:     booking.userId,
       accommodation: {
         id:   booking.accommodation.id,
         name: booking.accommodation.name,

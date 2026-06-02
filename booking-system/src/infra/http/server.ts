@@ -124,6 +124,7 @@ app.post("/bookings/preview", async (request, reply) => {
 });
 
 app.post("/bookings", { preHandler: authenticate }, async (request, reply) => {
+  const user = request.user as { id: string };
   const { accommodationId, checkIn, checkOut } = request.body as {
     accommodationId: string;
     checkIn: string;
@@ -134,6 +135,7 @@ app.post("/bookings", { preHandler: authenticate }, async (request, reply) => {
     accommodationId,
     checkIn: new Date(checkIn),
     checkOut: new Date(checkOut),
+    userId: user.id,
   });
 
   reply.status(201);
@@ -144,6 +146,7 @@ app.post("/bookings", { preHandler: authenticate }, async (request, reply) => {
     days:        booking.days,
     basePrice:   booking.basePrice,
     totalPrice:  booking.totalPrice,
+    userId:      booking.userId,
     accommodation: {
       id:   booking.accommodation.id,
       name: booking.accommodation.name,
@@ -151,26 +154,37 @@ app.post("/bookings", { preHandler: authenticate }, async (request, reply) => {
   };
 });
 
-app.get("/bookings", { preHandler: authenticate }, async () => {
-  return bookingRepo.findAll();
+app.get("/bookings", { preHandler: authenticate }, async (request) => {
+  const user = request.user as { id: string };
+  return bookingRepo.findByUserId(user.id);
 });
 
 app.get("/bookings/:id", { preHandler: authenticate }, async (request, reply) => {
   const { id } = request.params as { id: string };
+  const user = request.user as { id: string };
   const booking = await bookingRepo.findById(id);
   if (!booking) {
     reply.status(404);
     return { error: "Booking not found" };
+  }
+  if (booking.userId !== user.id) {
+    reply.status(403);
+    return { error: "Forbidden: this booking does not belong to you" };
   }
   return booking;
 });
 
 app.delete("/bookings/:id", { preHandler: authenticate }, async (request, reply) => {
   const { id } = request.params as { id: string };
+  const user = request.user as { id: string };
   const booking = await bookingRepo.findById(id);
   if (!booking) {
     reply.status(404);
     return { error: "Booking not found" };
+  }
+  if (booking.userId !== user.id) {
+    reply.status(403);
+    return { error: "Forbidden: this booking does not belong to you" };
   }
   await bookingRepo.delete(id);
   reply.status(204);

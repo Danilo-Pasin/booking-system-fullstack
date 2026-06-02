@@ -7,6 +7,7 @@ export interface CreateBookingInput {
   accommodationId: string;
   checkIn: Date;
   checkOut: Date;
+  userId: string;
 }
 
 export class CreateBooking {
@@ -37,7 +38,7 @@ export class CreateBooking {
     const basePrice = accommodation.calculatePrice(days);
     const { total } = this.pricingService.calculate(basePrice);
 
-    const booking = new Booking(accommodation, input.checkIn, input.checkOut, total);
+    const booking = new Booking(accommodation, input.checkIn, input.checkOut, total, input.userId);
 
     await this.bookingRepository.save(booking); // ← persiste no banco
 
