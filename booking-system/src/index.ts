@@ -13,6 +13,9 @@ import { PreviewBookingPrice } from "./application/use-cases/PreviewBookingPrice
 import { PrismaAccommodationRepository } from "./infra/repositories/PrismaAccommodationRepository";
 import { PrismaUserRepository } from "./infra/repositories/PrismaUserRepository";
 import { RegisterUser } from "./application/use-cases/RegisterUser";
+import { EventDispatcher } from "./application/events/EventDispatcher";
+import { ReservationEmailHandler } from "./application/events/ReservationEmailHandler";
+import { ReservationMetricsHandler } from "./application/events/ReservationMetricsHandler";
 import { randomUUID } from "crypto";
 
 // ──────────────────────────────────────────────
@@ -54,7 +57,12 @@ async function main() {
   const standardFees = [new PlatformFee(), new ServiceFee(0.03)];
   const bookingRepo = new PrismaBookingRepository();
   const pricingService = new PricingService(standardFees);
-  const createBooking = new CreateBooking(repo, pricingService, bookingRepo);
+
+  const eventDispatcher = new EventDispatcher();
+  eventDispatcher.register("booking.created", new ReservationEmailHandler());
+  eventDispatcher.register("booking.created", new ReservationMetricsHandler());
+
+  const createBooking = new CreateBooking(repo, pricingService, bookingRepo, eventDispatcher);
   const previewPrice = new PreviewBookingPrice(repo, pricingService);
 
   // Example 1 — Preview price for House (5 nights)
@@ -87,7 +95,7 @@ async function main() {
     new ServiceFee(0.03),
     new DiscountCoupon("WELCOME10", 0.10),
   ]);
-  const discountedCreate = new CreateBooking(repo, discountedPricing, bookingRepo);
+  const discountedCreate = new CreateBooking(repo, discountedPricing, bookingRepo, eventDispatcher);
   const sharedBooking = await discountedCreate.execute({
     accommodationId: "s-001",
     checkIn: futureDate(1),

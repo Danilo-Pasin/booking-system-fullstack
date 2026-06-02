@@ -22,6 +22,6 @@ export class PreviewBookingPrice {
       (input.checkOut.getTime() - input.checkIn.getTime()) / msPerDay
     );
     const basePrice = accommodation.calculatePrice(days);
-    return this.pricingService.calculate(basePrice);
+    return this.pricingService.calculate(basePrice, days);
   }
 }

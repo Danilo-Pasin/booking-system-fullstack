@@ -7,6 +7,8 @@ import {
   PastCheckInError,
   AccommodationUnavailableError,
 } from "../../domain/errors/DomainError";
+import { BookingCreatedEvent } from "../../domain/events/BookingCreatedEvent";
+import { EventDispatcher } from "../events/EventDispatcher";
 
 export interface CreateBookingInput {
   accommodationId: string;
@@ -19,7 +21,8 @@ export class CreateBooking {
   constructor(
     private readonly accommodationRepository: AccommodationRepository,
     private readonly pricingService: PricingService,
-    private readonly bookingRepository: BookingRepository
+    private readonly bookingRepository: BookingRepository,
+    private readonly eventDispatcher: EventDispatcher
   ) {}
 
   async execute(input: CreateBookingInput): Promise<Booking> {
@@ -41,11 +44,13 @@ export class CreateBooking {
 
     const days = this.calcDays(input.checkIn, input.checkOut);
     const basePrice = accommodation.calculatePrice(days);
-    const { total } = this.pricingService.calculate(basePrice);
+    const { total } = this.pricingService.calculate(basePrice, days);
 
     const booking = new Booking(accommodation, input.checkIn, input.checkOut, total, input.userId);
 
-    await this.bookingRepository.save(booking); // ← persiste no banco
+    await this.bookingRepository.save(booking);
+
+    this.eventDispatcher.dispatch(new BookingCreatedEvent(booking));
 
     return booking;
   }

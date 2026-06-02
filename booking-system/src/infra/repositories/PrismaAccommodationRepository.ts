@@ -1,36 +1,23 @@
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
 import { Accommodation } from "../../domain/entities/Accommodation";
-import { House } from "../../domain/entities/House";
-import { Apartment } from "../../domain/entities/Apartment";
-import { SharedRoom } from "../../domain/entities/SharedRoom";
 import { AccommodationRepository } from "../../domain/repositories/AccommodationRepository";
+import { AccommodationFactory } from "../../domain/factories/AccommodationFactory";
 import { AccommodationNotFoundError } from "../../domain/errors/DomainError";
 
 const prisma = new PrismaClient();
-
-// Reconstrói a classe correta a partir do tipo salvo no banco
-function toEntity(raw: { id: string; name: string; type: string; pricePerNight: number }): Accommodation {
-  const map: Record<string, Accommodation> = {
-    house:       new House(raw.id, raw.name, raw.pricePerNight),
-    apartment:   new Apartment(raw.id, raw.name, raw.pricePerNight),
-    shared_room: new SharedRoom(raw.id, raw.name, raw.pricePerNight),
-  };
-  const entity = map[raw.type];
-  if (!entity) throw new Error(`Unknown accommodation type: ${raw.type}`);
-  return entity;
-}
+const factory = new AccommodationFactory();
 
 export class PrismaAccommodationRepository implements AccommodationRepository {
   async findById(id: string): Promise<Accommodation> {
-  const raw = await prisma.accommodation.findUnique({ where: { id } });
-  if (!raw) throw new AccommodationNotFoundError(id);
-  return toEntity(raw);
+    const raw = await prisma.accommodation.findUnique({ where: { id } });
+    if (!raw) throw new AccommodationNotFoundError(id);
+    return factory.create(raw);
   }
 
   async findAll(): Promise<Accommodation[]> {
     const all = await prisma.accommodation.findMany();
-    return all.map(toEntity);
+    return all.map((r) => factory.create(r));
   }
 
   async save(accommodation: Accommodation & { type: string }): Promise<void> {

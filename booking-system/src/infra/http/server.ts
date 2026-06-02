@@ -10,7 +10,7 @@ import { CreateBooking } from "../../application/use-cases/CreateBooking";
 import { PreviewBookingPrice } from "../../application/use-cases/PreviewBookingPrice";
 import { RegisterUser } from "../../application/use-cases/RegisterUser";
 import { LoginUser } from "../../application/use-cases/LoginUser";
-import { PlatformFee, ServiceFee } from "../../domain/fees/Fee";
+import { PlatformFee, ServiceFee, LongStayDiscount } from "../../domain/fees/Fee";
 import {
   DomainError,
   UnauthorizedError,
@@ -24,6 +24,9 @@ import {
   loginSchema,
   bookingSchema,
 } from "./validation";
+import { EventDispatcher } from "../../application/events/EventDispatcher";
+import { ReservationEmailHandler } from "../../application/events/ReservationEmailHandler";
+import { ReservationMetricsHandler } from "../../application/events/ReservationMetricsHandler";
 
 const app = Fastify({ logger: true });
 
@@ -51,8 +54,13 @@ app.register(fastifyJwt, { secret: jwtSecret });
 const accommodationRepo = new PrismaAccommodationRepository();
 const bookingRepo = new PrismaBookingRepository();
 const userRepo = new PrismaUserRepository();
-const pricingService = new PricingService([new PlatformFee(), new ServiceFee(0.03)]);
-const createBooking = new CreateBooking(accommodationRepo, pricingService, bookingRepo);
+const pricingService = new PricingService([new PlatformFee(), new ServiceFee(0.03), new LongStayDiscount()]);
+
+const eventDispatcher = new EventDispatcher();
+eventDispatcher.register("booking.created", new ReservationEmailHandler());
+eventDispatcher.register("booking.created", new ReservationMetricsHandler());
+
+const createBooking = new CreateBooking(accommodationRepo, pricingService, bookingRepo, eventDispatcher);
 const previewPrice = new PreviewBookingPrice(accommodationRepo, pricingService);
 const registerUser = new RegisterUser(userRepo);
 const loginUser = new LoginUser(userRepo);
