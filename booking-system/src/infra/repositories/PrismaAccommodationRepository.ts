@@ -5,6 +5,7 @@ import { House } from "../../domain/entities/House";
 import { Apartment } from "../../domain/entities/Apartment";
 import { SharedRoom } from "../../domain/entities/SharedRoom";
 import { AccommodationRepository } from "../../domain/repositories/AccommodationRepository";
+import { AccommodationNotFoundError } from "../../domain/errors/DomainError";
 
 const prisma = new PrismaClient();
 
@@ -23,7 +24,7 @@ function toEntity(raw: { id: string; name: string; type: string; pricePerNight: 
 export class PrismaAccommodationRepository implements AccommodationRepository {
   async findById(id: string): Promise<Accommodation> {
   const raw = await prisma.accommodation.findUnique({ where: { id } });
-  if (!raw) throw new Error(`Accommodation not found: ${id}`);
+  if (!raw) throw new AccommodationNotFoundError(id);
   return toEntity(raw);
   }
 

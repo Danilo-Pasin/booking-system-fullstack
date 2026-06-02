@@ -2,6 +2,11 @@ import { Booking } from "../../domain/entities/Booking";
 import { AccommodationRepository } from "../../domain/repositories/AccommodationRepository";
 import { BookingRepository } from "../../domain/repositories/BookingRepository";
 import { PricingService } from "../services/PricingService";
+import {
+  InvalidDateRangeError,
+  PastCheckInError,
+  AccommodationUnavailableError,
+} from "../../domain/errors/DomainError";
 
 export interface CreateBookingInput {
   accommodationId: string;
@@ -27,7 +32,7 @@ export class CreateBooking {
     );
 
     if (conflict) {
-      throw new Error("Accommodation is not available for the selected dates.");
+      throw new AccommodationUnavailableError();
     }
 
     const accommodation = await this.accommodationRepository.findById(
@@ -47,10 +52,10 @@ export class CreateBooking {
 
   private validateDates(checkIn: Date, checkOut: Date): void {
     if (checkOut <= checkIn) {
-      throw new Error("Check-out must be after check-in.");
+      throw new InvalidDateRangeError();
     }
     if (checkIn < new Date(new Date().setHours(0, 0, 0, 0))) {
-      throw new Error("Check-in cannot be in the past.");
+      throw new PastCheckInError();
     }
   }
 

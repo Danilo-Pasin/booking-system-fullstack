@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 import { UserRepository } from "../../domain/repositories/UserRepository";
+import { EmailAlreadyInUseError } from "../../domain/errors/DomainError";
 
 export interface RegisterUserInput {
   name: string;
@@ -14,7 +15,7 @@ export class RegisterUser {
   async execute(input: RegisterUserInput) {
     const existing = await this.userRepository.findByEmail(input.email);
     if (existing) {
-      throw new Error("Email already in use.");
+      throw new EmailAlreadyInUseError();
     }
 
     const hashedPassword = await bcrypt.hash(input.password, 10);

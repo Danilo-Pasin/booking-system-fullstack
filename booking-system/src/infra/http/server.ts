@@ -1,5 +1,5 @@
 import "dotenv/config";
-import Fastify, { FastifyError } from "fastify";
+import Fastify from "fastify";
 import fastifyJwt from "@fastify/jwt";
 import cors from "@fastify/cors";
 import { PrismaAccommodationRepository } from "../repositories/PrismaAccommodationRepository";
@@ -11,6 +11,19 @@ import { PreviewBookingPrice } from "../../application/use-cases/PreviewBookingP
 import { RegisterUser } from "../../application/use-cases/RegisterUser";
 import { LoginUser } from "../../application/use-cases/LoginUser";
 import { PlatformFee, ServiceFee } from "../../domain/fees/Fee";
+import {
+  DomainError,
+  UnauthorizedError,
+  NotFoundError,
+  ConflictError,
+  ValidationError,
+} from "../../domain/errors/DomainError";
+import {
+  validate,
+  registerSchema,
+  loginSchema,
+  bookingSchema,
+} from "./validation";
 
 const app = Fastify({ logger: true });
 
@@ -25,9 +38,12 @@ app.register(cors, {
 // ──────────────────────────────────────────────
 // JWT
 // ──────────────────────────────────────────────
-app.register(fastifyJwt, {
-  secret: process.env.JWT_SECRET ?? "supersecret",
-});
+const jwtSecret = process.env.JWT_SECRET;
+if (!jwtSecret) {
+  console.error("FATAL: JWT_SECRET environment variable is not set.");
+  process.exit(1);
+}
+app.register(fastifyJwt, { secret: jwtSecret });
 
 // ──────────────────────────────────────────────
 // Dependencies
@@ -55,7 +71,7 @@ async function authenticate(request: any, reply: any) {
 // ──────────────────────────────────────────────
 // Auth routes
 // ──────────────────────────────────────────────
-app.post("/auth/register", async (request, reply) => {
+app.post("/auth/register", { preHandler: [validate(registerSchema)] }, async (request, reply) => {
   const { name, email, password } = request.body as {
     name: string;
     email: string;
@@ -67,7 +83,7 @@ app.post("/auth/register", async (request, reply) => {
   return user;
 });
 
-app.post("/auth/login", async (request, reply) => {
+app.post("/auth/login", { preHandler: [validate(loginSchema)] }, async (request, reply) => {
   const { email, password } = request.body as {
     email: string;
     password: string;
@@ -107,7 +123,7 @@ app.get("/accommodations/:id", async (request, reply) => {
 // ──────────────────────────────────────────────
 // Booking routes
 // ──────────────────────────────────────────────
-app.post("/bookings/preview", async (request, reply) => {
+app.post("/bookings/preview", { preHandler: [validate(bookingSchema)] }, async (request, reply) => {
   const { accommodationId, checkIn, checkOut } = request.body as {
     accommodationId: string;
     checkIn: string;
@@ -123,7 +139,7 @@ app.post("/bookings/preview", async (request, reply) => {
   return breakdown;
 });
 
-app.post("/bookings", { preHandler: authenticate }, async (request, reply) => {
+app.post("/bookings", { preHandler: [validate(bookingSchema), authenticate] }, async (request, reply) => {
   const user = request.user as { id: string };
   const { accommodationId, checkIn, checkOut } = request.body as {
     accommodationId: string;
@@ -193,8 +209,24 @@ app.delete("/bookings/:id", { preHandler: authenticate }, async (request, reply)
 // ──────────────────────────────────────────────
 // Error handler
 // ──────────────────────────────────────────────
-app.setErrorHandler((error: FastifyError, request, reply) => {
-  reply.status(400).send({ error: error.message });
+app.setErrorHandler((error, _request, reply) => {
+  if (error instanceof UnauthorizedError) {
+    return reply.status(401).send({ error: error.message });
+  }
+  if (error instanceof NotFoundError) {
+    return reply.status(404).send({ error: error.message });
+  }
+  if (error instanceof ConflictError) {
+    return reply.status(409).send({ error: error.message });
+  }
+  if (error instanceof ValidationError) {
+    return reply.status(400).send({ error: error.message });
+  }
+  if (error instanceof DomainError) {
+    return reply.status(400).send({ error: error.message });
+  }
+
+  reply.status(500).send({ error: "Internal server error" });
 });
 
 // ──────────────────────────────────────────────
