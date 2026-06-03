@@ -38,52 +38,10 @@ Sistema fullstack de reservas de acomodações, inspirado em Airbnb/Booking.com.
 
 ## Arquitetura
 
-```
-POO TS/
-├── booking-system/             # Backend (API)
-│   ├── prisma/                 # Schema + migrations + seed
-│   ├── src/
-│   │   ├── domain/             # Entidades, interfaces, erros
-│   │   │   ├── entities/       # Booking, Accommodation (House/Apartment/SharedRoom), Image
-│   │   │   ├── errors/         # DomainError, ValidationError, etc.
-│   │   │   ├── events/         # Domain Events
-│   │   │   ├── factories/      # AccommodationFactory
-│   │   │   ├── fees/           # PlatformFee, ServiceFee, LongStayDiscount
-│   │   │   ├── repositories/   # Interfaces (Contracts)
-│   │   │   ├── services/       # StorageProvider interface
-│   │   │   └── utils/          # calcDays, etc.
-│   │   ├── application/        # Casos de uso
-│   │   │   ├── services/       # PricingService
-│   │   │   ├── events/         # EventDispatcher, handlers
-│   │   │   └── use-cases/      # 20 use cases (CreateBooking, LoginUser, etc.)
-│   │   ├── infra/              # Implementações concretas
-│   │   │   ├── database/       # Prisma client (singleton)
-│   │   │   ├── http/           # Server Fastify, rotas, middleware, validação
-│   │   │   ├── repositories/   # Prisma + InMemory repositories
-│   │   │   └── storage/        # CloudinaryStorage
-│   │   ├── __tests__/          # 27 arquivos de teste
-│   │   └── index.ts            # Script de demonstração
-│   ├── Dockerfile
-│   └── vitest.config.ts
-│
-├── booking-frontend/           # Frontend (Next.js)
-│   ├── app/
-│   │   ├── accommodations/     # Detalhe da acomodação + booking
-│   │   ├── bookings/           # Lista de reservas do usuário
-│   │   ├── host/               # Painel do host (métricas + solicitações)
-│   │   ├── profile/            # Perfil + editar perfil
-│   │   ├── login/              # Login
-│   │   ├── register/           # Cadastro
-│   │   └── users/              # Perfil público
-│   ├── components/             # Navbar, Footer, Breadcrumbs, UI components
-│   ├── contexts/               # AuthContext
-│   ├── lib/                    # API client, tipos, utilitários
-│   └── vercel.json
-│
-├── .env.example                # Variáveis de ambiente documentadas
-├── .gitignore
-├── AGENTS.MD                   # Regras para IA
-└── package.json                # Scripts raiz (dev concorrente)
+```txt
+booking-system-fullstack/
+├── booking-system/       ← Backend/API
+└── booking-frontend/     ← Frontend Next.js
 ```
 
 ### Princípios
@@ -258,4 +216,4 @@ O repositório inclui `Dockerfile` para deploy conteinerizado.
 
 ## Licença
 
-Projeto acadêmico — sem fins comerciais.
+com foco em construção de portfólio profissional.
