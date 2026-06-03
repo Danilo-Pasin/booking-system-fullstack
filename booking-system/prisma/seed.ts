@@ -39,7 +39,7 @@ const accommodations = [
     type: "house",
     pricePerNight: 420,
     description: "Chalé romântico com lareira, banheira de hidromassagem e vista para a serra. Perfect para casais. Perto do centro.",
-    imageUrl: "https://images.unsplash.com/photo-1510798831971-4eb9fca4b4d9?w=800&q=80",
+    imageUrl: "https://images.unsplash.com/photo-dUws2oAdGMI?w=800&q=80",
     ownerEmail: "host2@booking.com",
   },
   {

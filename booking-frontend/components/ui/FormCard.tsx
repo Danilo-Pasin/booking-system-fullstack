@@ -1,23 +1,30 @@
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+
 export function FormCard({
   title,
   subtitle,
   children,
+  className,
 }: {
   title: string;
   subtitle?: string;
   children: React.ReactNode;
+  className?: string;
 }) {
   return (
     <main className="max-w-lg mx-auto px-4 py-16 sm:py-20">
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8">
-        <div className="text-center mb-8">
-          <h1 className="text-2xl font-bold">{title}</h1>
+      <Card className={cn("p-6", className)}>
+        <CardHeader className="px-0 pt-0 text-center">
+          <CardTitle className="text-2xl">{title}</CardTitle>
           {subtitle && (
-            <p className="text-zinc-500 text-sm mt-1">{subtitle}</p>
+            <CardDescription className="text-sm mt-1">{subtitle}</CardDescription>
           )}
-        </div>
-        {children}
-      </div>
+        </CardHeader>
+        <CardContent className="px-0 pb-0">
+          {children}
+        </CardContent>
+      </Card>
     </main>
   );
 }

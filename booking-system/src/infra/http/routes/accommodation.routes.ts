@@ -21,11 +21,19 @@ export async function registerAccommodationRoutes(
     listMyAccommodations: ListMyAccommodations;
   },
 ) {
-  // Public
+  // Public — list all with optional search/filter/sort
   app.get("/accommodations", {
     schema: {
       tags: ["Accommodations"],
       summary: "List all accommodations",
+      querystring: {
+        type: "object",
+        properties: {
+          search: { type: "string", maxLength: 100 },
+          type: { type: "string", enum: ["house", "apartment", "shared_room"] },
+          sort: { type: "string", enum: ["price_asc", "price_desc", "name_asc"] },
+        },
+      },
       response: {
         200: {
           description: "List of accommodations",
@@ -34,10 +42,14 @@ export async function registerAccommodationRoutes(
         },
       },
     },
-  }, async () => {
-    console.log("[GET /accommodations] entry");
-    const all = await deps.listAccommodations.execute();
-    const mapped = all.map((a: any) => ({
+  }, async (request) => {
+    const { search, type, sort } = request.query as {
+      search?: string;
+      type?: "house" | "apartment" | "shared_room";
+      sort?: "price_asc" | "price_desc" | "name_asc";
+    };
+    const all = await deps.listAccommodations.execute({ search, type, sort });
+    return all.map((a: any) => ({
       id: a.id,
       name: a.name,
       pricePerNight: a.pricePerNight,
@@ -47,8 +59,6 @@ export async function registerAccommodationRoutes(
       ownerId: a.ownerId,
       images: a.images,
     }));
-    console.log("[GET /accommodations] exit — count:", mapped.length);
-    return mapped;
   });
 
   app.get(
