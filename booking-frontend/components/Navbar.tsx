@@ -1,187 +1,184 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import AvatarWithFallback from "./AvatarWithFallback";
+import { useState } from "react";
+import { Menu, X, ChevronDown, Building2, LogOut, User, Calendar, LayoutDashboard, Plus } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 export default function Navbar() {
   const { user, logout } = useAuth();
-  const pathname = usePathname();
-  const [open, setOpen] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, []);
-
-  function isActive(href: string) {
-    return pathname === href;
-  }
-
-  function navLinkClasses(href: string) {
-    return `transition ${
-      isActive(href)
-        ? "text-blue-400 border-b-2 border-blue-500"
-        : "text-zinc-400 hover:text-white"
-    }`;
-  }
 
   return (
-    <header className="border-b border-zinc-800 bg-black text-white sticky top-0 z-50 backdrop-blur-sm bg-black/80">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4">
+    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3">
         <Link
           href="/"
-          className="text-xl sm:text-2xl font-bold text-blue-500 tracking-tight"
+          className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary tracking-tight hover:opacity-80 transition"
         >
+          <Building2 className="size-5 sm:size-6" />
           Booking System
         </Link>
 
-        <nav className="flex items-center gap-3 sm:gap-6 text-sm">
-          <Link
-            href="/"
-            className={`${navLinkClasses("/")} hidden sm:inline`}
-          >
-            Home
-          </Link>
-
+        <nav className="hidden sm:flex items-center gap-1 text-sm">
           {user ? (
-            <div className="relative" ref={ref}>
-              <button
-                onClick={() => setOpen(!open)}
-                className="flex items-center gap-2 text-zinc-300 hover:text-white transition"
-              >
-                <AvatarWithFallback
-                  src={user.avatarUrl}
-                  name={user.name}
-                  className="w-7 h-7"
-                  textClassName="text-xs"
-                />
-                <span className="hidden sm:inline">{user.name}</span>
-                <svg className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                </svg>
-              </button>
-
-              {open && (
-                <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl overflow-hidden">
-                  <Link
-                    href="/profile"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-2.5 text-zinc-300 hover:bg-zinc-800 hover:text-white transition text-sm"
-                  >
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="gap-2">
+                  <Avatar className="size-6">
+                    <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                    <AvatarFallback className="text-xs">{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="max-w-24 truncate">{user.name}</span>
+                  <ChevronDown className="size-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">
+                    <User className="size-4" />
                     Meu Perfil
                   </Link>
-                  <Link
-                    href="/profile/edit"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-2.5 text-zinc-300 hover:bg-zinc-800 hover:text-white transition text-sm"
-                  >
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile/edit" className="cursor-pointer">
+                    <User className="size-4" />
                     Editar Perfil
                   </Link>
-                  <Link
-                    href="/bookings"
-                    onClick={() => setOpen(false)}
-                    className="block px-4 py-2.5 text-zinc-300 hover:bg-zinc-800 hover:text-white transition text-sm"
-                  >
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/bookings" className="cursor-pointer">
+                    <Calendar className="size-4" />
                     Minhas Reservas
                   </Link>
-                  {user.role === "HOST" && (
-                    <Link
-                      href="/host"
-                      onClick={() => setOpen(false)}
-                      className="block px-4 py-2.5 text-zinc-300 hover:bg-zinc-800 hover:text-white transition text-sm"
-                    >
-                      Painel Host
-                    </Link>
-                  )}
-                  <hr className="border-zinc-800" />
-                  <button
-                    onClick={() => { setOpen(false); logout(); }}
-                    className="w-full text-left px-4 py-2.5 text-red-400 hover:bg-zinc-800 transition text-sm"
-                  >
-                    Sair
-                  </button>
-                </div>
-              )}
-            </div>
+                </DropdownMenuItem>
+                {user.role === "HOST" && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link href="/host" className="cursor-pointer">
+                        <LayoutDashboard className="size-4" />
+                        Painel Host
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href="/host/new" className="cursor-pointer">
+                        <Plus className="size-4" />
+                        Nova Acomodação
+                      </Link>
+                    </DropdownMenuItem>
+                  </>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={logout} className="cursor-pointer text-destructive focus:text-destructive">
+                  <LogOut className="size-4" />
+                  Sair
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <>
-              <Link
-                href="/login"
-                className={`${navLinkClasses("/login")} hidden sm:inline`}
-              >
-                Entrar
-              </Link>
-
-              <Link
-                href="/register"
-                className={`hidden sm:inline ${
-                  isActive("/register")
-                    ? "bg-blue-700 text-white border-b-2 border-blue-300"
-                    : "bg-blue-600 text-white"
-                } px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-blue-700 transition text-xs sm:text-sm`}
-              >
-                Cadastrar
-              </Link>
-
-              <button
-                onClick={() => setMobileOpen(!mobileOpen)}
-                className="sm:hidden p-2 text-zinc-400 hover:text-white transition"
-                aria-label="Menu"
-              >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  {mobileOpen ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-                  )}
-                </svg>
-              </button>
-            </>
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" asChild>
+                <Link href="/login">Entrar</Link>
+              </Button>
+              <Button size="sm" asChild>
+                <Link href="/register">Cadastrar</Link>
+              </Button>
+            </div>
           )}
         </nav>
-      </div>
 
-      {!user && mobileOpen && (
-        <div className="sm:hidden transition-all duration-300">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-b-2xl shadow-xl p-4 mx-4 mb-2 flex flex-col gap-4">
-            <Link
-              href="/"
-              onClick={() => setMobileOpen(false)}
-              className={`text-sm font-medium ${
-                isActive("/") ? "text-blue-400" : "text-zinc-300"
-              } hover:text-white transition`}
-            >
-              Home
-            </Link>
-            <Link
-              href="/login"
-              onClick={() => setMobileOpen(false)}
-              className={`text-sm font-medium ${
-                isActive("/login") ? "text-blue-400" : "text-zinc-300"
-              } hover:text-white transition`}
-            >
-              Entrar
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setMobileOpen(false)}
-              className="bg-blue-600 text-white text-center px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition"
-            >
-              Cadastrar
-            </Link>
-          </div>
-        </div>
-      )}
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetTrigger asChild className="sm:hidden">
+            <Button variant="ghost" size="icon">
+              {mobileOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="right" className="w-72">
+            <SheetHeader>
+              <SheetTitle className="flex items-center gap-2">
+                <Building2 className="size-4" />
+                Booking System
+              </SheetTitle>
+            </SheetHeader>
+            <div className="flex flex-col gap-2 p-6 pt-2">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-3 px-3 py-2 text-sm">
+                    <Avatar className="size-8">
+                      <AvatarImage src={user.avatarUrl || undefined} alt={user.name} />
+                      <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{user.name}</span>
+                      <span className="text-xs text-muted-foreground">{user.role === "HOST" ? "Anfitrião" : "Hóspede"}</span>
+                    </div>
+                  </div>
+                  <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
+                    <Link href="/profile">
+                      <User className="size-4" />
+                      Meu Perfil
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
+                    <Link href="/profile/edit">
+                      <User className="size-4" />
+                      Editar Perfil
+                    </Link>
+                  </Button>
+                  <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
+                    <Link href="/bookings">
+                      <Calendar className="size-4" />
+                      Minhas Reservas
+                    </Link>
+                  </Button>
+                  {user.role === "HOST" && (
+                    <>
+                      <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
+                        <Link href="/host">
+                          <LayoutDashboard className="size-4" />
+                          Painel Host
+                        </Link>
+                      </Button>
+                      <Button variant="ghost" className="justify-start" asChild onClick={() => setMobileOpen(false)}>
+                        <Link href="/host/new">
+                          <Plus className="size-4" />
+                          Nova Acomodação
+                        </Link>
+                      </Button>
+                    </>
+                  )}
+                  <hr className="my-2" />
+                  <Button variant="ghost" className="justify-start text-destructive" onClick={() => { logout(); setMobileOpen(false); }}>
+                    <LogOut className="size-4" />
+                    Sair
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button className="justify-center" asChild onClick={() => setMobileOpen(false)}>
+                    <Link href="/login">Entrar</Link>
+                  </Button>
+                  <Button variant="outline" className="justify-center" asChild onClick={() => setMobileOpen(false)}>
+                    <Link href="/register">Cadastrar</Link>
+                  </Button>
+                </>
+              )}
+            </div>
+          </SheetContent>
+        </Sheet>
+      </div>
     </header>
   );
 }

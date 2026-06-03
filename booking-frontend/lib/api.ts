@@ -37,8 +37,9 @@ async function handleResponse<T>(res: Response): Promise<T> {
   return body as T;
 }
 
-export async function fetchAccommodations(): Promise<Accommodation[]> {
-  const res = await fetch(`${API_URL}/accommodations`, {
+export async function fetchAccommodations(queryString?: string): Promise<Accommodation[]> {
+  const url = `${API_URL}/accommodations${queryString ?? ""}`;
+  const res = await fetch(url, {
     credentials: "include",
   });
   return handleResponse<Accommodation[]>(res);

@@ -13,6 +13,7 @@ import { typeLabel, typeIcon } from "@/lib/accommodation";
 import { getErrorMessage } from "@/lib/errors";
 import type { Accommodation, UserPublic, PricePreview, FeeItem } from "@/lib/types";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { Button } from "@/components/ui/button";
 
 export default function AccommodationPage() {
   const { id } = useParams();
@@ -80,7 +81,7 @@ export default function AccommodationPage() {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-8 py-10">
         <Skeleton className="h-6 w-16 mb-6" />
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+        <div className="border rounded-2xl overflow-hidden bg-card">
           <Skeleton className="h-56 sm:h-64" />
           <div className="p-6 sm:p-8 space-y-4">
             <Skeleton className="h-8 w-2/3" />
@@ -98,8 +99,8 @@ export default function AccommodationPage() {
       <main className="max-w-lg mx-auto px-4 py-20 text-center">
         <div className="text-4xl mb-4">🔍</div>
         <h1 className="text-2xl font-bold mb-2">Acomodação não encontrada</h1>
-        <p className="text-zinc-500 mb-6">Esta acomodação pode ter sido removida.</p>
-        <Link href="/" className="text-blue-400 hover:text-blue-300 underline transition">
+        <p className="text-muted-foreground mb-6">Esta acomodação pode ter sido removida.</p>
+        <Link href="/" className="text-blue-600 hover:text-blue-500 underline transition">
           Voltar ao início
         </Link>
       </main>
@@ -110,7 +111,7 @@ export default function AccommodationPage() {
     <main className="max-w-3xl mx-auto px-4 sm:px-8 py-10">
       <button
         onClick={() => router.back()}
-        className="text-zinc-400 hover:text-white text-sm mb-6 inline-flex items-center gap-1 transition"
+        className="text-muted-foreground hover:text-foreground text-sm mb-6 inline-flex items-center gap-1 transition"
       >
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -120,14 +121,14 @@ export default function AccommodationPage() {
 
       <Breadcrumbs segments={[{ label: accommodation.name }]} />
 
-      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden">
+      <div className="border rounded-2xl overflow-hidden bg-card">
         {(() => {
           const allImages = (accommodation.images ?? []).filter(i => i.url).map(i => i.url);
           const mainImage = allImages[selectedImage] ?? accommodation.imageUrl;
           return (
             <>
               <div
-                className="h-56 sm:h-64 overflow-hidden bg-zinc-800 cursor-pointer"
+                className="h-56 sm:h-64 overflow-hidden bg-muted cursor-pointer"
                 onClick={() => setLightboxIndex(selectedImage)}
               >
                 {mainImage ? (
@@ -137,7 +138,7 @@ export default function AccommodationPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-zinc-800 to-zinc-900">
+                  <div className="w-full h-full flex items-center justify-center text-6xl bg-gradient-to-br from-muted to-muted/80">
                     {typeIcon(accommodation.type)}
                   </div>
                 )}
@@ -148,7 +149,7 @@ export default function AccommodationPage() {
                     <button
                       key={i}
                       onClick={() => { setSelectedImage(i); setLightboxIndex(i); }}
-                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition ${i === selectedImage ? "border-blue-500" : "border-transparent hover:border-zinc-600"}`}
+                      className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition ${i === selectedImage ? "border-blue-500" : "border-transparent hover:border-muted-foreground/30"}`}
                     >
                       <img src={url} alt="" className="w-full h-full object-cover" />
                     </button>
@@ -163,21 +164,21 @@ export default function AccommodationPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-6">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold">{accommodation.name}</h1>
-              <span className="text-zinc-500 text-sm">{typeLabel(accommodation.type)}</span>
+              <span className="text-muted-foreground text-sm">{typeLabel(accommodation.type)}</span>
             </div>
-            <p className="text-blue-400 font-bold text-2xl">
+            <p className="text-blue-600 font-bold text-2xl">
               {formatCurrency(accommodation.pricePerNight)}
-              <span className="text-zinc-500 font-normal text-sm ml-1">/ noite</span>
+              <span className="text-muted-foreground font-normal text-sm ml-1">/ noite</span>
             </p>
           </div>
 
           {accommodation.description && (
-            <p className="text-zinc-300 mb-6 leading-relaxed">{accommodation.description}</p>
+            <p className="text-muted-foreground mb-6 leading-relaxed">{accommodation.description}</p>
           )}
 
           {host && (
-            <div className="mb-6 bg-zinc-800/30 border border-zinc-800 rounded-xl p-4">
-              <p className="text-xs uppercase tracking-wider text-zinc-500 mb-2">Anfitrião</p>
+            <div className="mb-6 bg-muted/30 border rounded-xl p-4">
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mb-2">Anfitrião</p>
               <Link href={`/users/${host.id}`} className="flex items-center gap-3 group">
                 <AvatarWithFallback
                   src={host.avatarUrl}
@@ -186,88 +187,89 @@ export default function AccommodationPage() {
                   textClassName="text-sm"
                 />
                 <div>
-                  <p className="text-white font-medium group-hover:text-blue-400 transition text-sm">{host.name}</p>
-                  <p className="text-zinc-500 text-xs">{host.accommodationCount} {host.accommodationCount === 1 ? "acomodação" : "acomodações"}</p>
+                  <p className="font-medium group-hover:text-blue-600 transition text-sm">{host.name}</p>
+                  <p className="text-muted-foreground text-xs">{host.accommodationCount} {host.accommodationCount === 1 ? "acomodação" : "acomodações"}</p>
                 </div>
               </Link>
             </div>
           )}
 
           {success ? (
-            <div className="bg-green-950/50 border border-green-800 rounded-xl p-6 text-center">
-              <p className="text-green-400 font-semibold text-lg">✅ Reserva confirmada!</p>
-              <button onClick={() => router.push("/bookings")} className="mt-4 text-blue-400 underline hover:text-blue-300 transition">
+            <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
+              <p className="text-green-700 font-semibold text-lg">✅ Reserva confirmada!</p>
+              <button onClick={() => router.push("/bookings")} className="mt-4 text-blue-600 underline hover:text-blue-500 transition">
                 Ver minhas reservas
               </button>
             </div>
           ) : (
-            <div className="bg-zinc-800/50 border border-zinc-700 rounded-xl p-6">
+            <div className="bg-muted/30 border rounded-xl p-6">
               <h2 className="font-semibold text-lg mb-4">Fazer reserva</h2>
-              {error && <p className="text-red-400 text-sm mb-3">{error}</p>}
+              {error && <p className="text-destructive text-sm mb-3">{error}</p>}
               <div className="flex gap-4 flex-col sm:flex-row mb-4">
                 <div className="flex-1">
-                  <label className="text-sm text-zinc-400 mb-1 block">Check-in</label>
+                  <label className="text-sm text-muted-foreground mb-1 block">Check-in</label>
                   <input
                     type="date"
                     value={checkIn}
                     onChange={e => setCheckIn(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition"
+                    className="h-8 w-full min-w-0 rounded-2xl border border-transparent bg-input/50 px-2.5 py-1 text-base transition-[color,box-shadow] duration-200 outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="text-sm text-zinc-400 mb-1 block">Check-out</label>
+                  <label className="text-sm text-muted-foreground mb-1 block">Check-out</label>
                   <input
                     type="date"
                     value={checkOut}
                     onChange={e => setCheckOut(e.target.value)}
-                    className="w-full bg-zinc-900 border border-zinc-700 rounded-lg px-3 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 transition"
+                    className="h-8 w-full min-w-0 rounded-2xl border border-transparent bg-input/50 px-2.5 py-1 text-base transition-[color,box-shadow] duration-200 outline-none file:inline-flex file:h-6 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40"
                   />
                 </div>
               </div>
-              <button
+              <Button
                 onClick={handlePreview}
                 disabled={loadingPreview}
-                className="w-full border border-zinc-700 text-zinc-300 py-2.5 rounded-lg hover:bg-zinc-800 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                variant="outline"
+                className="w-full"
               >
                 {loadingPreview ? "Calculando..." : "Ver preço"}
-              </button>
+              </Button>
 
               {preview && (
-                <div className="mt-6 bg-zinc-900 border border-zinc-700 rounded-xl p-5 space-y-3">
-                  <h3 className="font-semibold text-sm text-zinc-400 uppercase tracking-wider">Resumo de preços</h3>
+                <div className="mt-6 bg-card border rounded-xl p-5 space-y-3">
+                  <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Resumo de preços</h3>
                   <div className="flex justify-between text-sm">
-                    <span className="text-zinc-400">Base ({preview.base > 0 ? `${(preview.base / accommodation.pricePerNight).toFixed(0)} diárias` : ""})</span>
-                    <span className="text-white font-medium">{formatCurrency(preview.base)}</span>
+                    <span className="text-muted-foreground">Base ({preview.base > 0 ? `${(preview.base / accommodation.pricePerNight).toFixed(0)} diárias` : ""})</span>
+                    <span className="font-medium">{formatCurrency(preview.base)}</span>
                   </div>
-                  <div className="border-t border-zinc-800" />
+                  <div className="border-t" />
                   {preview.fees?.map((f: FeeItem) => {
                     const isDiscount = f.amount < 0;
                     const isLongStay = f.name.includes("Long Stay");
                     return (
                       <div key={f.name} className="flex justify-between text-sm">
-                        <span className={isLongStay ? "text-green-400" : "text-zinc-400"}>{f.name}</span>
-                        <span className={`font-medium ${isDiscount ? "text-green-400" : "text-white"}`}>
+                        <span className={isLongStay ? "text-green-600" : "text-muted-foreground"}>{f.name}</span>
+                        <span className={`font-medium ${isDiscount ? "text-green-600" : ""}`}>
                           {isDiscount ? `−${formatCurrency(Math.abs(f.amount))}` : `+${formatCurrency(f.amount)}`}
                         </span>
                       </div>
                     );
                   })}
-                  <div className="border-t border-zinc-800" />
+                  <div className="border-t" />
                   <div className="flex justify-between text-lg font-bold">
-                    <span className="text-white">Total</span>
-                    <span className="text-blue-400 text-xl">{formatCurrency(preview.total)}</span>
+                    <span>Total</span>
+                    <span className="text-blue-600 text-xl">{formatCurrency(preview.total)}</span>
                   </div>
                 </div>
               )}
 
               {preview && (
-                <button
+                <Button
                   onClick={handleBook}
                   disabled={loadingBook}
-                  className="w-full mt-4 bg-blue-600 text-white py-3 rounded-xl font-medium hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mt-4"
                 >
                   {loadingBook ? "Reservando..." : "Confirmar reserva"}
-                </button>
+                </Button>
               )}
             </div>
           )}

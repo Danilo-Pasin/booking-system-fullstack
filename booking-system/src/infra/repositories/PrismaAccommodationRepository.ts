@@ -1,7 +1,7 @@
 import "dotenv/config";
 import type { Accommodation } from "../../domain/entities/Accommodation";
 import type { Image } from "../../domain/entities/Image";
-import { AccommodationRepository } from "../../domain/repositories/AccommodationRepository";
+import { AccommodationRepository, AccommodationFilters } from "../../domain/repositories/AccommodationRepository";
 import { AccommodationFactory } from "../../domain/factories/AccommodationFactory";
 import { AccommodationNotFoundError } from "../../domain/errors/DomainError";
 import prisma from "../database/prisma";
@@ -22,6 +22,29 @@ function toDomain(raw: any): Accommodation {
   });
 }
 
+function buildWhereClause(filters?: AccommodationFilters) {
+  if (!filters) return {};
+  const where: any = {};
+  if (filters.type) where.type = filters.type;
+  if (filters.search) {
+    where.OR = [
+      { name: { contains: filters.search, mode: "insensitive" } },
+      { description: { contains: filters.search, mode: "insensitive" } },
+    ];
+  }
+  return where;
+}
+
+function buildOrderByClause(filters?: AccommodationFilters) {
+  if (!filters?.sort) return undefined;
+  switch (filters.sort) {
+    case "price_asc": return { pricePerNight: "asc" as const };
+    case "price_desc": return { pricePerNight: "desc" as const };
+    case "name_asc": return { name: "asc" as const };
+    default: return undefined;
+  }
+}
+
 export class PrismaAccommodationRepository implements AccommodationRepository {
   async findById(id: string): Promise<Accommodation> {
     const raw = await prisma.accommodation.findUnique({ where: { id }, include: IMAGE_INCLUDE });
@@ -29,17 +52,13 @@ export class PrismaAccommodationRepository implements AccommodationRepository {
     return toDomain(raw);
   }
 
-  async findAll(): Promise<Accommodation[]> {
-    console.log("[PrismaAccommodationRepository.findAll] entry");
-    try {
-      const all = await prisma.accommodation.findMany({ include: IMAGE_INCLUDE });
-      console.log("[PrismaAccommodationRepository.findAll] exit — count:", all.length);
-      return all.map(toDomain);
-    } catch (err) {
-      console.error("[PrismaAccommodationRepository.findAll] ERROR:", (err as Error).constructor?.name, (err as Error).message);
-      if ((err as any).code) console.error("[PrismaAccommodationRepository.findAll] Prisma code:", (err as any).code);
-      throw err;
-    }
+  async findAll(filters?: AccommodationFilters): Promise<Accommodation[]> {
+    const raw = await prisma.accommodation.findMany({
+      where: buildWhereClause(filters),
+      orderBy: buildOrderByClause(filters),
+      include: IMAGE_INCLUDE,
+    });
+    return raw.map(toDomain);
   }
 
   async findByOwnerId(ownerId: string): Promise<Accommodation[]> {

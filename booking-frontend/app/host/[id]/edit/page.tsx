@@ -6,11 +6,13 @@ import toast from "react-hot-toast";
 import { fetchAccommodation, updateAccommodation, uploadImage } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { getErrorMessage } from "@/lib/errors";
-import { Input, Textarea, Select } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { FormCard } from "@/components/ui/FormCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { Button } from "@/components/ui/button";
 
 export default function EditAccommodationPage() {
   const router = useRouter();
@@ -119,7 +121,7 @@ export default function EditAccommodationPage() {
   if (loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 space-y-6">
+        <div className="border rounded-2xl p-8 space-y-6 bg-card">
           <Skeleton className="h-6 w-1/2 mx-auto" />
           <Skeleton className="h-4 w-1/3 mx-auto" />
           <Skeleton className="h-12 rounded-lg" />
@@ -138,10 +140,10 @@ export default function EditAccommodationPage() {
       <main className="max-w-lg mx-auto px-4 py-20 text-center">
         <div className="text-4xl mb-4">🔍</div>
         <h1 className="text-2xl font-bold mb-2">Acomodação não encontrada</h1>
-        <p className="text-zinc-500 mb-6">O ID informado não corresponde a nenhuma acomodação.</p>
+        <p className="text-muted-foreground mb-6">O ID informado não corresponde a nenhuma acomodação.</p>
         <Link
           href="/host"
-          className="text-blue-400 hover:text-blue-300 underline transition"
+          className="text-blue-600 hover:text-blue-500 underline transition"
         >
           Voltar ao painel
         </Link>
@@ -163,18 +165,19 @@ export default function EditAccommodationPage() {
               onBlur={e => handleBlur("name", e.target.value)}
               required
             />
-            {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
           </div>
 
-          <Select
+          <select
             value={type}
             onChange={e => setType(e.target.value)}
             disabled
+            className="h-8 w-full min-w-0 rounded-2xl border border-transparent bg-input/50 px-2.5 py-1 text-base transition-[color,box-shadow] duration-200 outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/30 md:text-sm disabled:opacity-50"
           >
             <option value="house">Casa</option>
             <option value="apartment">Apartamento</option>
             <option value="shared_room">Quarto Compartilhado</option>
-          </Select>
+          </select>
 
           <div>
             <Input
@@ -186,7 +189,7 @@ export default function EditAccommodationPage() {
               min={1}
               required
             />
-            {errors.pricePerNight && <p className="text-red-400 text-sm mt-1">{errors.pricePerNight}</p>}
+            {errors.pricePerNight && <p className="text-destructive text-sm mt-1">{errors.pricePerNight}</p>}
           </div>
 
           <div>
@@ -197,37 +200,33 @@ export default function EditAccommodationPage() {
               onBlur={e => handleBlur("description", e.target.value)}
               rows={4}
             />
-            {errors.description && <p className="text-red-400 text-sm mt-1">{errors.description}</p>}
+            {errors.description && <p className="text-destructive text-sm mt-1">{errors.description}</p>}
           </div>
 
           <div>
-            <label className="text-sm text-zinc-400 mb-2 block">Imagem (opcional)</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Imagem (opcional)</label>
             <input
               ref={fileRef}
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/webp"
               onChange={handleFileChange}
-              className="w-full text-zinc-400 text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-500 transition file:cursor-pointer"
+              className="w-full text-muted-foreground text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/80 transition file:cursor-pointer"
             />
-            {uploading && <p className="text-blue-400 text-sm mt-2">Enviando imagem...</p>}
+            {uploading && <p className="text-blue-600 text-sm mt-2">Enviando imagem...</p>}
             {imagePreview && !uploading && (
-              <div className="mt-3 rounded-lg overflow-hidden h-40 bg-zinc-800">
+              <div className="mt-3 rounded-lg overflow-hidden h-40 bg-muted">
                 <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
               </div>
             )}
           </div>
 
-          <button
-            type="submit"
-            disabled={saving || uploading}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" disabled={saving || uploading} className="w-full">
             {saving ? "Salvando..." : "Salvar alterações"}
-          </button>
+          </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
-          <Link href="/host" className="text-blue-400 hover:text-blue-300 transition">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          <Link href="/host" className="text-blue-600 hover:text-blue-500 transition">
             Cancelar
           </Link>
         </p>

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 
 import "./globals.css";
 
@@ -25,6 +25,10 @@ export const metadata: Metadata = {
 };
 
 import { Toaster } from "react-hot-toast";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+
 
 export default function RootLayout({
   children,
@@ -34,9 +38,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
+      className={cn("h-full", "antialiased", "scroll-smooth", geistSans.variable, geistMono.variable, "font-sans", inter.variable)}
     >
-      <body className="min-h-full flex flex-col bg-black text-white">
+      <body className="min-h-full flex flex-col bg-background text-foreground">
         <AuthProvider>
           <Navbar />
 
@@ -48,7 +52,7 @@ export default function RootLayout({
         <Toaster
           position="top-right"
           toastOptions={{
-            style: { background: "#1a1a2e", color: "#fff", border: "1px solid #333" },
+            style: { background: "var(--popover)", color: "var(--popover-foreground)", border: "1px solid var(--border)" },
           }}
         />
       </body>

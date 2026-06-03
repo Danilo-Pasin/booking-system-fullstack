@@ -9,6 +9,7 @@ import type { UserPublic } from "@/lib/types";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { FormCard } from "@/components/ui/FormCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { Button } from "@/components/ui/button";
 
 export default function UserProfilePage() {
   const { id } = useParams();
@@ -32,7 +33,7 @@ export default function UserProfilePage() {
   if (loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 space-y-6">
+        <div className="border rounded-2xl p-8 space-y-6 bg-card">
           <Skeleton className="w-24 h-24 rounded-full mx-auto" />
           <Skeleton className="h-6 w-1/2 mx-auto" />
           <Skeleton className="h-4 w-1/4 mx-auto" />
@@ -46,7 +47,7 @@ export default function UserProfilePage() {
       <main className="max-w-lg mx-auto px-4 py-20 text-center">
         <div className="text-4xl mb-4">🔍</div>
         <h1 className="text-2xl font-bold mb-2">Usuário não encontrado</h1>
-        <Link href="/" className="text-blue-400 hover:text-blue-300 underline transition">
+        <Link href="/" className="text-blue-600 hover:text-blue-500 underline transition">
           Voltar ao início
         </Link>
       </main>
@@ -66,29 +67,26 @@ export default function UserProfilePage() {
         />
       </div>
 
-      <span className="inline-block text-xs uppercase tracking-wider bg-zinc-800 text-zinc-400 px-3 py-1 rounded-full">
+      <span className="inline-block text-xs uppercase tracking-wider bg-muted text-muted-foreground px-3 py-1 rounded-full">
         {user.role === "HOST" ? "Anfitrião" : "Hóspede"}
       </span>
 
       {user.bio && (
-        <p className="text-zinc-300 mt-4 text-sm leading-relaxed">{user.bio}</p>
+        <p className="text-muted-foreground mt-4 text-sm leading-relaxed">{user.bio}</p>
       )}
 
-      <p className="text-zinc-500 text-sm mt-4">
+      <p className="text-muted-foreground text-sm mt-4">
         {user.accommodationCount} {user.accommodationCount === 1 ? "acomodação anunciada" : "acomodações anunciadas"}
       </p>
 
-      <p className="text-zinc-600 text-xs mt-2">
+      <p className="text-muted-foreground/50 text-xs mt-2">
         Membro desde {new Date(user.createdAt!).toLocaleDateString("pt-BR")}
       </p>
 
       <div className="mt-8">
-        <Link
-          href="/"
-          className="w-full inline-block border border-zinc-700 text-zinc-300 py-2.5 rounded-lg font-medium hover:bg-zinc-800 transition text-sm"
-        >
-          Voltar ao início
-        </Link>
+        <Button variant="outline" className="w-full" asChild>
+          <Link href="/">Voltar ao início</Link>
+        </Button>
       </div>
     </FormCard>
     </>
