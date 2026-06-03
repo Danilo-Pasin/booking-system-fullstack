@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,12 +8,55 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum Role {
+  GUEST
+  HOST
+}
+
+model User {
+  id             String          @id @default(uuid())
+  name           String
+  email          String          @unique
+  password       String
+  role           Role            @default(GUEST)
+  avatarUrl      String?
+  bio            String?
+  createdAt      DateTime        @default(now())
+  bookings       Booking[]
+  accommodations Accommodation[]
+}
+
 model Accommodation {
   id             String    @id @default(uuid())
   name           String
-  type           String    // "house" | "apartment" | "shared_room"
+  type           String
   pricePerNight  Float
+  description    String?
+  imageUrl       String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  ownerId        String
+  owner          User      @relation(fields: [ownerId], references: [id])
   bookings       Booking[]
+  images         Image[]
+}
+
+model Image {
+  id              String        @id @default(uuid())
+  url             String
+  order           Int           @default(0)
+  accommodationId String
+  accommodation   Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime      @default(now())
+
+  @@index([accommodationId])
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELED
 }
 
 model Booking {
@@ -28,18 +65,10 @@ model Booking {
   checkOut        DateTime
   basePrice       Float
   totalPrice      Float
+  status          BookingStatus @default(PENDING)
   createdAt       DateTime      @default(now())
   accommodation   Accommodation @relation(fields: [accommodationId], references: [id])
   accommodationId String
-  user            User?         @relation(fields: [userId], references: [id])
-  userId          String?
-}
-
-model User {
-  id        String    @id @default(uuid())
-  name      String
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  bookings  Booking[]
+  user            User          @relation(fields: [userId], references: [id])
+  userId          String
 }

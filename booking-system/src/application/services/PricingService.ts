@@ -9,10 +9,10 @@ export interface PricingBreakdown {
 export class PricingService {
   constructor(private readonly fees: Fee[]) {}
 
-  calculate(basePrice: number): PricingBreakdown {
+  calculate(basePrice: number, days?: number): PricingBreakdown {
     const appliedFees = this.fees.map((fee) => ({
       name: fee.name,
-      amount: fee.calculate(basePrice),
+      amount: fee.calculate(basePrice, days),
     }));
 
     const total =

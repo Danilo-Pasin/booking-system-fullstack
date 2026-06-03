@@ -1,5 +1,7 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "../../domain/repositories/UserRepository";
+import { InvalidCredentialsError } from "../../domain/errors/DomainError";
+import { toUserResponse } from "./UserResponse";
 
 export interface LoginUserInput {
   email: string;
@@ -12,14 +14,14 @@ export class LoginUser {
   async execute(input: LoginUserInput) {
     const user = await this.userRepository.findByEmail(input.email);
     if (!user) {
-      throw new Error("Invalid email or password.");
+      throw new InvalidCredentialsError();
     }
 
     const valid = await bcrypt.compare(input.password, user.password);
     if (!valid) {
-      throw new Error("Invalid email or password.");
+      throw new InvalidCredentialsError();
     }
 
-    return { id: user.id, name: user.name, email: user.email };
+    return toUserResponse(user);
   }
 }

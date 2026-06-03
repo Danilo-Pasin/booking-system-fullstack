@@ -1,5 +1,6 @@
 import { AccommodationRepository } from "../../domain/repositories/AccommodationRepository";
 import { PricingBreakdown, PricingService } from "../services/PricingService";
+import { calcDays } from "../../domain/utils/date";
 
 export interface PreviewPriceInput {
   accommodationId: string;
@@ -17,11 +18,8 @@ export class PreviewBookingPrice {
     const accommodation = await this.accommodationRepository.findById(
       input.accommodationId
     );
-    const msPerDay = 1000 * 60 * 60 * 24;
-    const days = Math.ceil(
-      (input.checkOut.getTime() - input.checkIn.getTime()) / msPerDay
-    );
+    const days = calcDays(input.checkIn, input.checkOut);
     const basePrice = accommodation.calculatePrice(days);
-    return this.pricingService.calculate(basePrice);
+    return this.pricingService.calculate(basePrice, days);
   }
 }

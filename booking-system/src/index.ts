@@ -11,6 +11,15 @@ import { CreateBooking } from "./application/use-cases/CreateBooking";
 import { PrismaBookingRepository } from "./infra/repositories/PrismaBookingRepository";
 import { PreviewBookingPrice } from "./application/use-cases/PreviewBookingPrice";
 import { PrismaAccommodationRepository } from "./infra/repositories/PrismaAccommodationRepository";
+import { PrismaUserRepository } from "./infra/repositories/PrismaUserRepository";
+import { RegisterUser } from "./application/use-cases/RegisterUser";
+import { CreateAccommodation } from "./application/use-cases/CreateAccommodation";
+import { UpdateAccommodation } from "./application/use-cases/UpdateAccommodation";
+import { DeleteAccommodation } from "./application/use-cases/DeleteAccommodation";
+import { EventDispatcher } from "./application/events/EventDispatcher";
+import { ReservationEmailHandler } from "./application/events/ReservationEmailHandler";
+import { ReservationMetricsHandler } from "./application/events/ReservationMetricsHandler";
+import { randomUUID } from "crypto";
 
 // ──────────────────────────────────────────────
 // Helper functions
@@ -32,15 +41,70 @@ function separator(label: string) {
 // ──────────────────────────────────────────────
 async function main() {
   const repo = new PrismaAccommodationRepository();
+  const userRepo = new PrismaUserRepository();
+  const registerUser = new RegisterUser(userRepo);
 
-  await repo.save(new House("h-001", "Beach House in Florianópolis", 350));
-  await repo.save(new Apartment("a-001", "Studio in São Paulo - Pinheiros", 180));
-  await repo.save(new SharedRoom("s-001", "Shared Room in Hostel, Búzios", 60));
+  // Create a default host for seed accommodations
+  const hostUser = await registerUser.execute({
+    name: "Default Host",
+    email: `host-${randomUUID().slice(0, 8)}@example.com`,
+    password: "password123",
+    role: "HOST",
+  });
+  console.log(`\n  Host created: ${hostUser.email} (${hostUser.id})`);
+
+  // Seed accommodations with ownerId
+  await repo.save(new House("h-001", "Beach House in Florianópolis", 350, "house", undefined, hostUser.id));
+  await repo.save(new Apartment("a-001", "Studio in São Paulo - Pinheiros", 180, "apartment", undefined, hostUser.id));
+  await repo.save(new SharedRoom("s-001", "Shared Room in Hostel, Búzios", 60, "shared_room", undefined, hostUser.id));
+
+  // Create a test GUEST user for booking demos
+  const testEmail = `test-${randomUUID().slice(0, 8)}@example.com`;
+  const testUser = await registerUser.execute({
+    name: "Test User",
+    email: testEmail,
+    password: "password123",
+  });
+  console.log(`  Guest created: ${testUser.email} (${testUser.id})`);
+
+  // Demo: CreateAccommodation use case
+  separator("HOST — Create Accommodation");
+  const createAccommodation = new CreateAccommodation(repo);
+  const newAccommodation = await createAccommodation.execute({
+    name: "New Beach House",
+    type: "house",
+    pricePerNight: 400,
+    description: "A beautiful beach house with ocean view",
+    ownerId: hostUser.id,
+  });
+  console.log(`  Created: ${newAccommodation.name} (${newAccommodation.id})`);
+
+  // Demo: UpdateAccommodation use case
+  separator("HOST — Update Accommodation");
+  const updateAccommodation = new UpdateAccommodation(repo);
+  const updated = await updateAccommodation.execute({
+    id: newAccommodation.id,
+    name: "New Beach House - Updated",
+    pricePerNight: 450,
+    ownerId: hostUser.id,
+  });
+  console.log(`  Updated: ${updated.name} ($${updated.pricePerNight}/night)`);
+
+  // Demo: DeleteAccommodation use case
+  separator("HOST — Delete Accommodation");
+  const deleteAccommodation = new DeleteAccommodation(repo);
+  await deleteAccommodation.execute({ id: newAccommodation.id, ownerId: hostUser.id });
+  console.log(`  Deleted: ${newAccommodation.name}`);
 
   const standardFees = [new PlatformFee(), new ServiceFee(0.03)];
   const bookingRepo = new PrismaBookingRepository();
   const pricingService = new PricingService(standardFees);
-  const createBooking = new CreateBooking(repo, pricingService, bookingRepo);
+
+  const eventDispatcher = new EventDispatcher();
+  eventDispatcher.register("booking.created", new ReservationEmailHandler());
+  eventDispatcher.register("booking.created", new ReservationMetricsHandler());
+
+  const createBooking = new CreateBooking(repo, pricingService, bookingRepo, eventDispatcher);
   const previewPrice = new PreviewBookingPrice(repo, pricingService);
 
   // Example 1 — Preview price for House (5 nights)
@@ -62,6 +126,7 @@ async function main() {
     accommodationId: "a-001",
     checkIn: futureDate(2),
     checkOut: futureDate(5),
+    userId: testUser.id,
   });
   console.log(aptBooking.summarize());
 
@@ -72,11 +137,12 @@ async function main() {
     new ServiceFee(0.03),
     new DiscountCoupon("WELCOME10", 0.10),
   ]);
-  const discountedCreate = new CreateBooking(repo, discountedPricing, bookingRepo);
+  const discountedCreate = new CreateBooking(repo, discountedPricing, bookingRepo, eventDispatcher);
   const sharedBooking = await discountedCreate.execute({
     accommodationId: "s-001",
     checkIn: futureDate(1),
     checkOut: futureDate(4),
+    userId: testUser.id,
   });
   console.log(sharedBooking.summarize());
 
@@ -87,6 +153,7 @@ async function main() {
       accommodationId: "h-001",
       checkIn: futureDate(10),
       checkOut: futureDate(5),
+      userId: testUser.id,
     });
   } catch (err) {
     console.log(`  ✗ Error caught: ${(err as Error).message}`);
