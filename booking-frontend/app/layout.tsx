@@ -7,6 +7,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 
 import Navbar from "@/components/Navbar";
+import { Footer } from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,15 +34,16 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased scroll-smooth`}
     >
       <body className="min-h-full flex flex-col bg-black text-white">
         <AuthProvider>
           <Navbar />
 
-          <main className="flex-1">
+          <div className="flex-1 animate-fadeIn">
             {children}
-          </main>
+          </div>
+          <Footer />
         </AuthProvider>
         <Toaster
           position="top-right"

@@ -8,18 +8,17 @@ import {
 } from "react";
 
 import { useRouter } from "next/navigation";
-
-type User = {
-  id: string;
-  name: string;
-  email: string;
-};
+import toast from "react-hot-toast";
+import { setOnUnauthorized, fetchProfile, logout } from "@/lib/api";
+import type { User } from "@/lib/types";
 
 type AuthContextType = {
   user: User | null;
   token: string | null;
+  isLoading: boolean;
   login: (token: string, user: User) => void;
   logout: () => void;
+  updateUser: (data: Partial<User>) => void;
 };
 
 const AuthContext = createContext<AuthContextType>(
@@ -32,43 +31,54 @@ export function AuthProvider({
   children: React.ReactNode;
 }) {
   const router = useRouter();
-
   const [user, setUser] = useState<User | null>(null);
-
   const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-
-    const storedUser = localStorage.getItem("user");
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
+    fetchProfile()
+      .then((profile) => {
+        setUser(profile);
+        setToken("authenticated");
+      })
+      .catch(() => {
+        setUser(null);
+        setToken(null);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
   }, []);
 
-  function handleLogin(token: string, user: User) {
-    localStorage.setItem("token", token);
+  useEffect(() => {
+    setOnUnauthorized(() => {
+      setToken(null);
+      setUser(null);
+      toast.error("Sua sessão expirou. Faça login novamente.");
+      router.push("/login");
+    });
+  }, []);
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify(user)
-    );
-
-    setToken(token);
-    setUser(user);
+  function handleLogin(newToken: string, newUser: User) {
+    setToken(newToken);
+    setUser(newUser);
   }
 
-  function handleLogout() {
-    localStorage.removeItem("token");
+  function handleUpdateUser(data: Partial<User>) {
+    setUser((prev) => {
+      if (!prev) return prev;
+      return { ...prev, ...data };
+    });
+  }
 
-    localStorage.removeItem("user");
-
+  async function handleLogout() {
+    try {
+      await logout();
+    } catch {
+      // cookie might already be invalid
+    }
     setToken(null);
-
     setUser(null);
-
     router.push("/login");
   }
 
@@ -77,8 +87,10 @@ export function AuthProvider({
       value={{
         user,
         token,
+        isLoading,
         login: handleLogin,
         logout: handleLogout,
+        updateUser: handleUpdateUser,
       }}
     >
       {children}

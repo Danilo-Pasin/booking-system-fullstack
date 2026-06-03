@@ -5,6 +5,8 @@ import Link from "next/link";
 import toast from "react-hot-toast";
 import { login } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
+import { Input } from "@/components/ui/Input";
+import { FormCard } from "@/components/ui/FormCard";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -12,52 +14,81 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
+
+  function validate(): boolean {
+    const errs: Record<string, string> = {};
+    if (!email.trim()) errs.email = "O email é obrigatório.";
+    if (!password) errs.password = "A senha é obrigatória.";
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  }
+
+  function handleBlur(field: string, value: string) {
+    if (!value.trim()) {
+      setErrors(prev => ({ ...prev, [field]: field === "email" ? "O email é obrigatório." : "A senha é obrigatória." }));
+    } else {
+      setErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setErrors({});
+    if (!validate()) return;
     setLoading(true);
-    const data = await login(email, password);
-    if (data.error) {
-      toast.error(data.error);
+    try {
+      const data = await login(email, password);
+      signIn(data.token, data.user);
+      toast.success("Login realizado com sucesso!");
+      router.push("/");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Falha ao fazer login");
+    } finally {
       setLoading(false);
-      return;
     }
-    signIn(data.token, data.user);
-    toast.success("Login realizado com sucesso!");
-    router.push("/");
   }
 
   return (
-    <main className="max-w-md mx-auto p-8 mt-16">
-      <h1 className="text-2xl font-bold mb-6">Login</h1>
+    <FormCard title="Entrar" subtitle="Acesse sua conta para reservar">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={e => setEmail(e.target.value)}
-          className="border rounded-lg px-4 py-2"
-          required
-        />
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={e => setPassword(e.target.value)}
-          className="border rounded-lg px-4 py-2"
-          required
-        />
+        <div>
+          <Input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            onBlur={e => handleBlur("email", e.target.value)}
+            required
+          />
+          {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
+        </div>
+        <div>
+          <Input
+            type="password"
+            placeholder="Senha"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            onBlur={e => handleBlur("password", e.target.value)}
+            required
+          />
+          {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
+        </div>
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Entrando..." : "Entrar"}
         </button>
       </form>
-      <p className="mt-4 text-sm text-gray-500">
-        Não tem conta? <Link href="/register" className="text-blue-600">Cadastre-se</Link>
+
+      <p className="mt-6 text-center text-sm text-zinc-500">
+        Não tem conta?{" "}
+        <Link href="/register" className="text-blue-400 hover:text-blue-300 transition">
+          Cadastre-se
+        </Link>
       </p>
-    </main>
+    </FormCard>
   );
 }

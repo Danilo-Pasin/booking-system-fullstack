@@ -3,5 +3,8 @@ export interface User {
   name: string;
   email: string;
   password: string;
+  role: "GUEST" | "HOST";
+  avatarUrl?: string;
+  bio?: string;
   createdAt: Date;
 }

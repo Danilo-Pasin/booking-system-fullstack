@@ -13,6 +13,9 @@ import { PreviewBookingPrice } from "./application/use-cases/PreviewBookingPrice
 import { PrismaAccommodationRepository } from "./infra/repositories/PrismaAccommodationRepository";
 import { PrismaUserRepository } from "./infra/repositories/PrismaUserRepository";
 import { RegisterUser } from "./application/use-cases/RegisterUser";
+import { CreateAccommodation } from "./application/use-cases/CreateAccommodation";
+import { UpdateAccommodation } from "./application/use-cases/UpdateAccommodation";
+import { DeleteAccommodation } from "./application/use-cases/DeleteAccommodation";
 import { EventDispatcher } from "./application/events/EventDispatcher";
 import { ReservationEmailHandler } from "./application/events/ReservationEmailHandler";
 import { ReservationMetricsHandler } from "./application/events/ReservationMetricsHandler";
@@ -41,18 +44,57 @@ async function main() {
   const userRepo = new PrismaUserRepository();
   const registerUser = new RegisterUser(userRepo);
 
-  await repo.save(new House("h-001", "Beach House in Florianópolis", 350));
-  await repo.save(new Apartment("a-001", "Studio in São Paulo - Pinheiros", 180));
-  await repo.save(new SharedRoom("s-001", "Shared Room in Hostel, Búzios", 60));
+  // Create a default host for seed accommodations
+  const hostUser = await registerUser.execute({
+    name: "Default Host",
+    email: `host-${randomUUID().slice(0, 8)}@example.com`,
+    password: "password123",
+    role: "HOST",
+  });
+  console.log(`\n  Host created: ${hostUser.email} (${hostUser.id})`);
 
-  // Create a test user to satisfy the required userId on bookings
+  // Seed accommodations with ownerId
+  await repo.save(new House("h-001", "Beach House in Florianópolis", 350, "house", undefined, hostUser.id));
+  await repo.save(new Apartment("a-001", "Studio in São Paulo - Pinheiros", 180, "apartment", undefined, hostUser.id));
+  await repo.save(new SharedRoom("s-001", "Shared Room in Hostel, Búzios", 60, "shared_room", undefined, hostUser.id));
+
+  // Create a test GUEST user for booking demos
   const testEmail = `test-${randomUUID().slice(0, 8)}@example.com`;
   const testUser = await registerUser.execute({
     name: "Test User",
     email: testEmail,
     password: "password123",
   });
-  console.log(`\n  Test user created: ${testUser.email} (${testUser.id})`);
+  console.log(`  Guest created: ${testUser.email} (${testUser.id})`);
+
+  // Demo: CreateAccommodation use case
+  separator("HOST — Create Accommodation");
+  const createAccommodation = new CreateAccommodation(repo);
+  const newAccommodation = await createAccommodation.execute({
+    name: "New Beach House",
+    type: "house",
+    pricePerNight: 400,
+    description: "A beautiful beach house with ocean view",
+    ownerId: hostUser.id,
+  });
+  console.log(`  Created: ${newAccommodation.name} (${newAccommodation.id})`);
+
+  // Demo: UpdateAccommodation use case
+  separator("HOST — Update Accommodation");
+  const updateAccommodation = new UpdateAccommodation(repo);
+  const updated = await updateAccommodation.execute({
+    id: newAccommodation.id,
+    name: "New Beach House - Updated",
+    pricePerNight: 450,
+    ownerId: hostUser.id,
+  });
+  console.log(`  Updated: ${updated.name} ($${updated.pricePerNight}/night)`);
+
+  // Demo: DeleteAccommodation use case
+  separator("HOST — Delete Accommodation");
+  const deleteAccommodation = new DeleteAccommodation(repo);
+  await deleteAccommodation.execute({ id: newAccommodation.id, ownerId: hostUser.id });
+  console.log(`  Deleted: ${newAccommodation.name}`);
 
   const standardFees = [new PlatformFee(), new ServiceFee(0.03)];
   const bookingRepo = new PrismaBookingRepository();

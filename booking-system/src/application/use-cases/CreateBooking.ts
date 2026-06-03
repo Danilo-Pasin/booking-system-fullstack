@@ -5,8 +5,8 @@ import { PricingService } from "../services/PricingService";
 import {
   InvalidDateRangeError,
   PastCheckInError,
-  AccommodationUnavailableError,
 } from "../../domain/errors/DomainError";
+import { calcDays } from "../../domain/utils/date";
 import { BookingCreatedEvent } from "../../domain/events/BookingCreatedEvent";
 import { EventDispatcher } from "../events/EventDispatcher";
 
@@ -28,27 +28,17 @@ export class CreateBooking {
   async execute(input: CreateBookingInput): Promise<Booking> {
     this.validateDates(input.checkIn, input.checkOut);
 
-    const conflict = await this.bookingRepository.hasConflict(
-    input.accommodationId,
-    input.checkIn,
-    input.checkOut
-    );
-
-    if (conflict) {
-      throw new AccommodationUnavailableError();
-    }
-
     const accommodation = await this.accommodationRepository.findById(
       input.accommodationId
     );
 
-    const days = this.calcDays(input.checkIn, input.checkOut);
+    const days = calcDays(input.checkIn, input.checkOut);
     const basePrice = accommodation.calculatePrice(days);
     const { total } = this.pricingService.calculate(basePrice, days);
 
     const booking = new Booking(accommodation, input.checkIn, input.checkOut, total, input.userId);
 
-    await this.bookingRepository.save(booking);
+    await this.bookingRepository.tryCreate(booking);
 
     this.eventDispatcher.dispatch(new BookingCreatedEvent(booking));
 
@@ -64,8 +54,4 @@ export class CreateBooking {
     }
   }
 
-  private calcDays(checkIn: Date, checkOut: Date): number {
-    const msPerDay = 1000 * 60 * 60 * 24;
-    return Math.ceil((checkOut.getTime() - checkIn.getTime()) / msPerDay);
-  }
 }

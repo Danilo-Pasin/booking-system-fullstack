@@ -1,12 +1,14 @@
 import { randomUUID } from "crypto";
 import bcrypt from "bcrypt";
 import { UserRepository } from "../../domain/repositories/UserRepository";
-import { EmailAlreadyInUseError } from "../../domain/errors/DomainError";
+import { EmailAlreadyInUseError, ValidationError } from "../../domain/errors/DomainError";
+import { toUserResponse } from "./UserResponse";
 
 export interface RegisterUserInput {
   name: string;
   email: string;
   password: string;
+  role?: "GUEST" | "HOST";
 }
 
 export class RegisterUser {
@@ -18,18 +20,24 @@ export class RegisterUser {
       throw new EmailAlreadyInUseError();
     }
 
-    const hashedPassword = await bcrypt.hash(input.password, 10);
+    const role = input.role ?? "GUEST";
+    if (role !== "GUEST" && role !== "HOST") {
+      throw new ValidationError("Role must be GUEST or HOST");
+    }
+
+    const hashedPassword = await bcrypt.hash(input.password, 12);
 
     const user = {
-      id:        randomUUID(),
-      name:      input.name,
-      email:     input.email,
-      password:  hashedPassword,
+      id: randomUUID(),
+      name: input.name,
+      email: input.email,
+      password: hashedPassword,
+      role,
       createdAt: new Date(),
     };
 
     await this.userRepository.save(user);
 
-    return { id: user.id, name: user.name, email: user.email };
+    return toUserResponse(user);
   }
 }

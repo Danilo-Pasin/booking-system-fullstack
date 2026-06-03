@@ -1,6 +1,7 @@
 import bcrypt from "bcrypt";
 import { UserRepository } from "../../domain/repositories/UserRepository";
 import { InvalidCredentialsError } from "../../domain/errors/DomainError";
+import { toUserResponse } from "./UserResponse";
 
 export interface LoginUserInput {
   email: string;
@@ -21,6 +22,6 @@ export class LoginUser {
       throw new InvalidCredentialsError();
     }
 
-    return { id: user.id, name: user.name, email: user.email };
+    return toUserResponse(user);
   }
 }

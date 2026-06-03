@@ -1,73 +1,168 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import toast from "react-hot-toast";
 import { fetchBookings, cancelBooking } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
+import EmptyState from "@/components/EmptyState";
+import ConfirmModal from "@/components/ConfirmModal";
+import { formatCurrency } from "@/lib/currency";
+import { getErrorMessage } from "@/lib/errors";
+import type { Booking } from "@/lib/types";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 
 export default function BookingsPage() {
   const router = useRouter();
-  const [bookings, setBookings] = useState<any[]>([]);
+  const { user, token, isLoading } = useAuth();
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
   async function loadBookings() {
-    const token = localStorage.getItem("token");
-    if (!token) { router.push("/login"); return; }
-    const data = await fetchBookings(token);
-    if (data.error) { setError(data.error); setLoading(false); return; }
-    setBookings(data);
-    setLoading(false);
+    if (!token) return;
+    try {
+      const data = await fetchBookings(token);
+      setBookings(data);
+    } catch (err: unknown) {
+      setError(getErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
   }
 
   useEffect(() => {
+    if (isLoading) return;
     loadBookings();
-  }, []);
+  }, [user, token, isLoading]);
 
   async function handleCancel(id: string) {
-    const token = localStorage.getItem("token");
     if (!token) return;
     setCancelling(id);
+    setConfirmId(null);
     try {
       await cancelBooking(id, token);
       toast.success("Reserva cancelada!");
+      setLoading(true);
       await loadBookings();
-    } catch (err: any) {
-      toast.error(err.message);
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err));
     } finally {
       setCancelling(null);
     }
   }
 
-  if (loading) return <p className="p-8">Carregando reservas...</p>;
-
-  return (
-    <main className="max-w-3xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Minhas Reservas</h1>
-      {error && <p className="text-red-500">{error}</p>}
-      {bookings.length === 0 && !error && <p className="text-gray-500">Nenhuma reserva encontrada.</p>}
-      <div className="flex flex-col gap-4">
-        {bookings.map(b => (
-          <div key={b.id} className="border rounded-xl p-6">
-            <h2 className="font-semibold text-lg">{b.accommodation.name}</h2>
-            <p className="text-gray-500 text-sm capitalize mb-3">{b.accommodation.type.replace("_", " ")}</p>
-            <div className="flex gap-6 text-sm flex-col sm:flex-row mb-4">
-              <p>Check-in: <strong>{new Date(b.checkIn).toLocaleDateString("pt-BR")}</strong></p>
-              <p>Check-out: <strong>{new Date(b.checkOut).toLocaleDateString("pt-BR")}</strong></p>
-            </div>
-            <div className="flex items-center justify-between">
-              <p className="text-blue-600 font-bold">Total: R${b.totalPrice.toFixed(2)}</p>
-              <button
-                onClick={() => handleCancel(b.id)}
-                disabled={cancelling === b.id}
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-              >
-                {cancelling === b.id ? "Cancelando..." : "Cancelar reserva"}
-              </button>
-            </div>
+  if (isLoading || loading) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-8 py-10">
+        <Skeleton className="h-8 w-48 mb-8" />
+        {[1, 2].map((n) => (
+          <div key={n} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 sm:p-6 mb-4 space-y-4">
+            <Skeleton className="h-6 w-2/3" />
+            <Skeleton className="h-4 w-1/3" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-10 w-36 rounded-lg" />
           </div>
         ))}
       </div>
-    </main>
+    );
+  }
+
+  return (
+    <ProtectedRoute>
+      <main className="max-w-3xl mx-auto px-4 sm:px-8 py-10">
+        <Breadcrumbs />
+        <div className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold">Minhas Reservas</h1>
+            <p className="text-zinc-500 mt-1">Gerencie suas estadias</p>
+          </div>
+          <Link
+            href="/"
+            className="text-sm text-blue-400 hover:text-blue-300 transition"
+          >
+            Explorar acomodações
+          </Link>
+        </div>
+
+        {error && (
+          <div className="bg-red-950/50 border border-red-800 rounded-xl p-4 mb-6">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        {bookings.length === 0 && !error && (
+          <EmptyState
+            icon="📋"
+            title="Nenhuma reserva encontrada."
+            actionLabel="Explorar acomodações"
+            actionHref="/"
+          />
+        )}
+
+        <div className="flex flex-col gap-4">
+          {bookings.map(b => (
+            <div
+              key={b.id}
+              className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden hover:border-zinc-700 transition"
+            >
+              <div className="p-5 sm:p-6">
+                <div className="flex items-start justify-between mb-3">
+                  <div>
+                    <h2 className="font-semibold text-lg text-white">{b.accommodation.name}</h2>
+                    <span className="text-zinc-500 text-sm capitalize">{b.accommodation.type.replace("_", " ")}</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-6 text-sm mb-4">
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Entrada: <strong className="text-white">{new Date(b.checkIn).toLocaleDateString("pt-BR")}</strong></span>
+                  </div>
+                  <span className="hidden sm:inline text-zinc-700">→</span>
+                  <div className="flex items-center gap-2 text-zinc-400">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span>Saída: <strong className="text-white">{new Date(b.checkOut).toLocaleDateString("pt-BR")}</strong></span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-4 border-t border-zinc-800">
+                  <p className="text-blue-400 font-bold text-lg">
+                    Total: {formatCurrency(b.totalPrice)}
+                  </p>
+                  <button
+                    onClick={() => setConfirmId(b.id)}
+                    disabled={cancelling === b.id}
+                    className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-sm transition"
+                  >
+                    {cancelling === b.id ? "Cancelando..." : "Cancelar reserva"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <ConfirmModal
+          open={confirmId !== null}
+          title="Cancelar reserva"
+          message="Tem certeza que deseja cancelar esta reserva? Esta ação não pode ser desfeita."
+          confirmLabel={cancelling === confirmId ? "Cancelando..." : "Confirmar cancelamento"}
+          cancelLabel="Manter reserva"
+          loading={cancelling === confirmId}
+          variant="danger"
+          onConfirm={() => confirmId && handleCancel(confirmId)}
+          onCancel={() => setConfirmId(null)}
+        />
+      </main>
+    </ProtectedRoute>
   );
 }

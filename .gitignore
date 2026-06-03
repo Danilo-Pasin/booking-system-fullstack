@@ -1,24 +1,54 @@
-# dependencies
-node_modules
+# ── Dependencies ──
+node_modules/
+.pnp
+.pnp.js
+.yarn/
 
-# next
-.next
+# ── Build / Output ──
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
 
-# build
-dist
-
-# env
+# ── Environment ──
 .env
 .env.local
+.env.*.local
+.env.development
+.env.production
+# .env.example tracked intentionally (documentation)
 
-# logs
-*.log
-
-# macOS
-.DS_Store
-
-# prisma
-booking-system/prisma/dev.db
-
-# vscode
+# ── IDE / Editor ──
 .vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ── OS ──
+.DS_Store
+Thumbs.db
+
+# ── Logs ──
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Testing ──
+coverage/
+
+# ── Prisma ──
+booking-system/prisma/dev.db
+booking-system/prisma/dev.db-journal
+booking-system/src/generated/prisma
+
+# ── Vercel ──
+.vercel
+
+# ── Docker ──
+.dockerignore

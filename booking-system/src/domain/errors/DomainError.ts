@@ -27,8 +27,8 @@ export class NotFoundError extends DomainError {
   }
 }
 export class AccommodationNotFoundError extends NotFoundError {
-  constructor(id: string) {
-    super(`Accommodation not found: ${id}`);
+  constructor() {
+    super("Accommodation not found");
   }
 }
 export class BookingNotFoundError extends NotFoundError {}
@@ -48,6 +48,11 @@ export class EmailAlreadyInUseError extends ConflictError {
     super("Email already in use.");
   }
 }
+export class AlreadyHostError extends ConflictError {
+  constructor() {
+    super("User is already a HOST.");
+  }
+}
 
 export class UnauthorizedError extends DomainError {
   constructor(message?: string) {
@@ -57,5 +62,38 @@ export class UnauthorizedError extends DomainError {
 export class InvalidCredentialsError extends UnauthorizedError {
   constructor() {
     super("Invalid email or password.");
+  }
+}
+
+export class ForbiddenError extends DomainError {
+  constructor(message?: string) {
+    super(message ?? "Forbidden");
+  }
+}
+export class HostOnlyError extends ForbiddenError {
+  constructor() {
+    super("Only hosts can perform this action.");
+  }
+}
+export class NotOwnerError extends ForbiddenError {
+  constructor() {
+    super("You do not own this accommodation.");
+  }
+}
+
+export class UploadFailedError extends DomainError {
+  constructor() {
+    super("File upload failed.");
+  }
+}
+
+export class BookingNotPendingError extends ValidationError {
+  constructor(currentStatus: string) {
+    super(`Booking cannot be processed because it is ${currentStatus}. Only PENDING bookings can be updated.`);
+  }
+}
+export class BookingAlreadyApprovedError extends ConflictError {
+  constructor() {
+    super("This accommodation already has an APPROVED booking for the requested dates.");
   }
 }
