@@ -6,11 +6,13 @@ import toast from "react-hot-toast";
 import { fetchProfile, updateProfile, uploadImage } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { getErrorMessage } from "@/lib/errors";
-import { Input, Textarea } from "@/components/ui/Input";
+import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { FormCard } from "@/components/ui/FormCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { Button } from "@/components/ui/button";
 
 export default function EditProfilePage() {
   const router = useRouter();
@@ -102,7 +104,7 @@ export default function EditProfilePage() {
   if (isLoading || loading) {
     return (
       <div className="max-w-lg mx-auto px-4 py-20">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-8 space-y-6">
+        <div className="border rounded-2xl p-8 space-y-6 bg-card">
           <Skeleton className="h-6 w-1/2 mx-auto" />
           <Skeleton className="h-4 w-1/3 mx-auto" />
           <Skeleton className="h-12 rounded-lg" />
@@ -128,16 +130,16 @@ export default function EditProfilePage() {
               onBlur={e => handleBlur("name", e.target.value)}
               required
             />
-            {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+            {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
           </div>
 
           <div>
-            <label className="text-sm text-zinc-400 mb-2 block">Foto do perfil</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Foto do perfil</label>
             <div className="flex items-center gap-3 mb-2">
               {avatarUrl && (
-                <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border border-zinc-700" />
+                <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border" />
               )}
-              <label className="cursor-pointer bg-zinc-800 text-zinc-300 px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-700 transition">
+              <label className="cursor-pointer bg-muted text-muted-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent transition">
                 {uploadingAvatar ? "Enviando..." : "Enviar foto"}
                 <input
                   type="file"
@@ -167,7 +169,7 @@ export default function EditProfilePage() {
               onChange={e => setAvatarUrl(e.target.value)}
               onBlur={e => handleBlur("avatarUrl", e.target.value)}
             />
-            {errors.avatarUrl && <p className="text-red-400 text-sm mt-1">{errors.avatarUrl}</p>}
+            {errors.avatarUrl && <p className="text-destructive text-sm mt-1">{errors.avatarUrl}</p>}
           </div>
 
           <div>
@@ -179,20 +181,16 @@ export default function EditProfilePage() {
               rows={4}
               maxLength={500}
             />
-            {errors.bio && <p className="text-red-400 text-sm mt-1">{errors.bio}</p>}
+            {errors.bio && <p className="text-destructive text-sm mt-1">{errors.bio}</p>}
           </div>
 
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <Button type="submit" disabled={saving} className="w-full">
             {saving ? "Salvando..." : "Salvar"}
-          </button>
+          </Button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-zinc-500">
-          <Link href="/profile" className="text-blue-400 hover:text-blue-300 transition">
+        <p className="mt-6 text-center text-sm text-muted-foreground">
+          <Link href="/profile" className="text-blue-600 hover:text-blue-500 transition">
             Cancelar
           </Link>
         </p>

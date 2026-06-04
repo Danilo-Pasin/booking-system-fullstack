@@ -14,6 +14,7 @@ import { getErrorMessage } from "@/lib/errors";
 import type { Accommodation, DashboardData } from "@/lib/types";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { Button } from "@/components/ui/button";
 
 export default function HostPage() {
   const router = useRouter();
@@ -69,12 +70,12 @@ export default function HostPage() {
         <Skeleton className="h-8 w-48 mb-8" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {[1, 2, 3].map((n) => (
-            <div key={n} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 h-24" />
+            <div key={n} className="border rounded-2xl p-5 h-24 bg-card" />
           ))}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {[1, 2].map((n) => (
-            <div key={n} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 h-40" />
+            <div key={n} className="border rounded-2xl p-5 h-40 bg-card" />
           ))}
         </div>
       </div>
@@ -87,16 +88,13 @@ export default function HostPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Painel do Host</h1>
-            <p className="text-zinc-500 mt-1">
+            <p className="text-muted-foreground mt-1">
               {accommodations.length} {accommodations.length === 1 ? "acomodação cadastrada" : "acomodações cadastradas"}
             </p>
           </div>
-          <Link
-            href="/host/new"
-            className="bg-blue-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-blue-500 transition text-sm"
-          >
-            + Nova acomodação
-          </Link>
+          <Button asChild>
+            <Link href="/host/new">+ Nova acomodação</Link>
+          </Button>
         </div>
 
         {dashboard && (
@@ -106,7 +104,7 @@ export default function HostPage() {
             <MetricCard
               label="Receita Estimada"
               value={formatCurrency(dashboard.estimatedRevenue)}
-              valueClassName="text-green-400"
+              valueClassName="text-green-600"
             />
           </div>
         )}
@@ -115,24 +113,24 @@ export default function HostPage() {
           <div className="mb-8">
             <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
               Solicitações Pendentes
-              <span className="bg-yellow-600 text-white text-xs px-2 py-0.5 rounded-full">
+              <span className="bg-yellow-500 text-white text-xs px-2 py-0.5 rounded-full">
                 {dashboard.pendingBookings.length}
               </span>
             </h2>
             <div className="flex flex-col gap-3">
               {dashboard.pendingBookings.map((pb) => (
-                <div key={pb.id} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5">
+                <div key={pb.id} className="border rounded-2xl p-5 bg-card">
                   <div className="flex items-start justify-between mb-3">
                     <div>
-                      <p className="font-semibold text-white">{pb.accommodation.name}</p>
-                      <p className="text-zinc-400 text-sm">
+                      <p className="font-semibold">{pb.accommodation.name}</p>
+                      <p className="text-muted-foreground text-sm">
                         {pb.userName || "Hóspede"} &middot; {new Date(pb.checkIn).toLocaleDateString("pt-BR")} → {new Date(pb.checkOut).toLocaleDateString("pt-BR")}
                       </p>
                     </div>
-                    <p className="text-blue-400 font-bold">{formatCurrency(pb.totalPrice)}</p>
+                    <p className="text-blue-600 font-bold">{formatCurrency(pb.totalPrice)}</p>
                   </div>
                   <div className="flex gap-2">
-                    <button
+                    <Button
                       onClick={async () => {
                         if (!token) return;
                         setProcessingStatus(pb.id);
@@ -147,11 +145,11 @@ export default function HostPage() {
                         }
                       }}
                       disabled={processingStatus === pb.id}
-                      className="flex-1 bg-blue-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="flex-1"
                     >
                       {processingStatus === pb.id ? "Processando..." : "Aprovar"}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       onClick={async () => {
                         if (!token) return;
                         setProcessingStatus(pb.id);
@@ -166,10 +164,11 @@ export default function HostPage() {
                         }
                       }}
                       disabled={processingStatus === pb.id}
-                      className="flex-1 border border-red-600 text-red-400 py-2 rounded-lg text-sm font-medium hover:bg-red-600 hover:text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      variant="destructive"
+                      className="flex-1"
                     >
                       {processingStatus === pb.id ? "Processando..." : "Recusar"}
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ))}
@@ -178,8 +177,8 @@ export default function HostPage() {
         )}
 
         {error && (
-          <div className="bg-red-950/50 border border-red-800 rounded-xl p-4 mb-6">
-            <p className="text-red-400 text-sm">{error}</p>
+          <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-4 mb-6">
+            <p className="text-destructive text-sm">{error}</p>
           </div>
         )}
 
@@ -196,32 +195,30 @@ export default function HostPage() {
           {accommodations.map((a) => (
             <div
               key={a.id}
-              className="bg-zinc-900 border border-zinc-800 rounded-2xl p-5 hover:border-zinc-700 transition"
+              className="border rounded-2xl p-5 hover:border-muted-foreground/30 transition bg-card"
             >
               <div className="flex items-start justify-between mb-3">
-                <h2 className="font-semibold text-lg text-white">{a.name}</h2>
-                <span className="text-blue-400 font-bold">{formatCurrency(a.pricePerNight)}/noite</span>
+                <h2 className="font-semibold text-lg">{a.name}</h2>
+                <span className="text-blue-600 font-bold">{formatCurrency(a.pricePerNight)}/noite</span>
               </div>
-              <p className="text-zinc-500 text-sm capitalize mb-2">
+              <p className="text-muted-foreground text-sm capitalize mb-2">
                 {typeLabel(a.type)}
               </p>
               {a.description && (
-                <p className="text-zinc-400 text-sm mb-3 line-clamp-2">{a.description}</p>
+                <p className="text-muted-foreground text-sm mb-3 line-clamp-2">{a.description}</p>
               )}
-              <div className="flex items-center gap-2 pt-3 border-t border-zinc-800">
-                <Link
-                  href={`/host/${a.id}/edit`}
-                  className="flex-1 text-center bg-zinc-800 text-zinc-300 py-2 rounded-lg text-sm font-medium hover:bg-zinc-700 hover:text-white transition"
-                >
-                  Editar
-                </Link>
-                <button
+              <div className="flex items-center gap-2 pt-3 border-t">
+                <Button variant="outline" className="flex-1" asChild>
+                  <Link href={`/host/${a.id}/edit`}>Editar</Link>
+                </Button>
+                <Button
                   onClick={() => setConfirmId(a.id)}
                   disabled={deleting === a.id}
-                  className="flex-1 bg-red-600 text-white py-2 rounded-lg text-sm font-medium hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  variant="destructive"
+                  className="flex-1"
                 >
                   {deleting === a.id ? "Excluindo..." : "Excluir"}
-                </button>
+                </Button>
               </div>
             </div>
           ))}

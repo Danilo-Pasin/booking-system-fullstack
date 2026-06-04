@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { register } from "@/lib/api";
 import { Input } from "@/components/ui/Input";
 import { FormCard } from "@/components/ui/FormCard";
+import { Button } from "@/components/ui/button";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -65,7 +66,7 @@ export default function RegisterPage() {
             onBlur={e => handleBlur("name", e.target.value)}
             required
           />
-          {errors.name && <p className="text-red-400 text-sm mt-1">{errors.name}</p>}
+          {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
         </div>
         <div>
           <Input
@@ -76,7 +77,7 @@ export default function RegisterPage() {
             onBlur={e => handleBlur("email", e.target.value)}
             required
           />
-          {errors.email && <p className="text-red-400 text-sm mt-1">{errors.email}</p>}
+          {errors.email && <p className="text-destructive text-sm mt-1">{errors.email}</p>}
         </div>
         <div>
           <Input
@@ -87,20 +88,16 @@ export default function RegisterPage() {
             onBlur={e => handleBlur("password", e.target.value)}
             required
           />
-          {errors.password && <p className="text-red-400 text-sm mt-1">{errors.password}</p>}
+          {errors.password && <p className="text-destructive text-sm mt-1">{errors.password}</p>}
         </div>
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? "Cadastrando..." : "Cadastrar"}
-        </button>
+        </Button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-zinc-500">
+      <p className="mt-6 text-center text-sm text-muted-foreground">
         Já tem conta?{" "}
-        <Link href="/login" className="text-blue-400 hover:text-blue-300 transition">
+        <Link href="/login" className="text-blue-600 hover:text-blue-500 transition">
           Entrar
         </Link>
       </p>
