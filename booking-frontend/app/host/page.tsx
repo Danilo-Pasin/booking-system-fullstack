@@ -19,10 +19,10 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Button } from "@/components/ui/button";
 
 const STATUS_CONFIG: Record<string, { label: string; classes: string }> = {
-  PENDING:   { label: "Pendente",   classes: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
-  APPROVED:  { label: "Confirmada", classes: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
-  REJECTED:  { label: "Rejeitada",  classes: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
-  CANCELED:  { label: "Cancelada",  classes: "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" },
+  PENDING:   { label: "⏳ Pendente",            classes: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300" },
+  APPROVED:  { label: "✅ Confirmada",          classes: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300" },
+  REJECTED:  { label: "❌ Recusada",            classes: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300" },
+  CANCELED:  { label: "🚫 Cancelada",           classes: "bg-zinc-200 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400" },
 };
 
 function StatusBadge({ status }: { status: string }) {

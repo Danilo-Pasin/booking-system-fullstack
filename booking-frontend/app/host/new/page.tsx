@@ -92,7 +92,7 @@ export default function NewAccommodationPage() {
   }
 
   return (
-    <>
+    <main className="max-w-7xl mx-auto px-6 py-10">
       <Breadcrumbs />
       <FormCard title="Nova acomodação" subtitle="Cadastre um novo imóvel para hospedagem">
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -170,6 +170,6 @@ export default function NewAccommodationPage() {
         </Link>
       </p>
     </FormCard>
-    </>
+    </main>
   );
 }

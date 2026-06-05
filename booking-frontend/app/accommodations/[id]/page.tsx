@@ -69,7 +69,7 @@ export default function AccommodationPage() {
     try {
       await createBooking(id as string, checkIn, checkOut, token);
       setSuccess(true);
-      toast.success("Reserva confirmada!");
+      toast.success("Solicitação enviada ao anfitrião.");
     } catch (err: unknown) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -195,8 +195,11 @@ export default function AccommodationPage() {
           )}
 
           {success ? (
-            <div className="bg-green-50 border border-green-200 rounded-xl p-6 text-center">
-              <p className="text-green-700 font-semibold text-lg">✅ Reserva confirmada!</p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
+              <p className="text-yellow-800 font-semibold text-lg">⏳ Solicitação enviada com sucesso!</p>
+              <p className="text-yellow-700 text-sm mt-2">
+                O anfitrião analisará sua solicitação. Você será notificado quando ela for aprovada ou recusada.
+              </p>
               <button onClick={() => router.push("/bookings")} className="mt-4 text-blue-600 underline hover:text-blue-500 transition">
                 Ver minhas reservas
               </button>
@@ -268,7 +271,7 @@ export default function AccommodationPage() {
                   disabled={loadingBook}
                   className="w-full mt-4"
                 >
-                  {loadingBook ? "Reservando..." : "Confirmar reserva"}
+                  {loadingBook ? "Enviando..." : "Solicitar reserva"}
                 </Button>
               )}
             </div>
