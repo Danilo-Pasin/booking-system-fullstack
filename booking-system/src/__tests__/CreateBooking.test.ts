@@ -9,6 +9,7 @@ import {
   AccommodationUnavailableError,
 } from "../domain/errors/DomainError";
 import { BookingCreatedEvent } from "../domain/events/BookingCreatedEvent";
+import { Booking } from "../domain/entities/Booking";
 
 function futureDate(daysFromNow: number): Date {
   const d = new Date();
@@ -99,16 +100,45 @@ describe("CreateBooking", () => {
     ).rejects.toThrow(AccommodationNotFoundError);
   });
 
-  it("throws AccommodationUnavailableError when dates conflict", async () => {
+  it("allows multiple PENDING bookings for overlapping dates", async () => {
     const checkIn = futureDate(10);
     const checkOut = futureDate(13);
 
-    await useCase.execute({
+    const first = await useCase.execute({
       accommodationId: "acc-1",
       checkIn,
       checkOut,
       userId: "user-1",
     });
+
+    expect(first.status).toBe("PENDING");
+
+    const overlappingCheckIn = futureDate(11);
+    const overlappingCheckOut = futureDate(14);
+
+    const second = await useCase.execute({
+      accommodationId: "acc-1",
+      checkIn: overlappingCheckIn,
+      checkOut: overlappingCheckOut,
+      userId: "user-2",
+    });
+
+    expect(second.status).toBe("PENDING");
+    expect(second.id).not.toBe(first.id);
+  });
+
+  it("throws AccommodationUnavailableError when dates conflict with APPROVED booking", async () => {
+    const checkIn = futureDate(10);
+    const checkOut = futureDate(13);
+
+    const first = await useCase.execute({
+      accommodationId: "acc-1",
+      checkIn,
+      checkOut,
+      userId: "user-1",
+    });
+
+    await bookingRepo.updateStatus(first.id, "APPROVED");
 
     const overlappingCheckIn = futureDate(11);
     const overlappingCheckOut = futureDate(14);

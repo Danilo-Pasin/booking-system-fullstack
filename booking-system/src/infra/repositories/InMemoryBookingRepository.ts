@@ -33,7 +33,7 @@ export class InMemoryBookingRepository implements BookingRepository {
   async tryCreate(booking: Booking): Promise<void> {
     const conflicting = Array.from(this.store.values()).find(
       (b) =>
-        (b.status === "PENDING" || b.status === "APPROVED") &&
+        b.status === "APPROVED" &&
         b.accommodation.id === booking.accommodation.id &&
         b.checkIn < booking.checkOut &&
         b.checkOut > booking.checkIn,
@@ -69,7 +69,7 @@ export class InMemoryBookingRepository implements BookingRepository {
     return Array.from(this.store.values()).some(
       (b) =>
         b.id !== excludeBookingId &&
-        (b.status === "PENDING" || b.status === "APPROVED") &&
+        b.status === "APPROVED" &&
         b.accommodation.id === accommodationId &&
         b.checkIn < checkOut &&
         b.checkOut > checkIn,
