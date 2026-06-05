@@ -153,6 +153,7 @@ export default function EditAccommodationPage() {
 
   return (
     <ProtectedRoute>
+      <main className="max-w-7xl mx-auto px-6 py-10">
       <Breadcrumbs segments={[{ label: name }]} />
       <FormCard title="Editar acomodação" subtitle="Atualize os dados do imóvel">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -231,6 +232,7 @@ export default function EditAccommodationPage() {
           </Link>
         </p>
       </FormCard>
+      </main>
     </ProtectedRoute>
   );
 }
