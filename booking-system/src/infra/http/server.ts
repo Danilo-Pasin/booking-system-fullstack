@@ -60,9 +60,7 @@ const app = Fastify({ logger: true });
 // Plugins
 // ──────────────────────────────────────────────
 await app.register(cors, {
-  origin: process.env.CORS_ORIGIN ?? (process.env.NODE_ENV === "production"
-    ? "https://your-production-url.com"
-    : "http://localhost:3000"),
+  origin: process.env.CORS_ORIGIN ?? "http://localhost:3000",
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   credentials: true,
 });
