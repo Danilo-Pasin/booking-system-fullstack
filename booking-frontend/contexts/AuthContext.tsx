@@ -5,12 +5,15 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
 } from "react";
 
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { setOnUnauthorized, fetchProfile, logout } from "@/lib/api";
+import { setOnUnauthorized, fetchProfile } from "@/lib/api";
 import type { User } from "@/lib/types";
+
+const TOKEN_KEY = "booking_token";
 
 type AuthContextType = {
   user: User | null;
@@ -36,47 +39,55 @@ export function AuthProvider({
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetchProfile()
-      .then((profile) => {
-        setUser(profile);
-        setToken("authenticated");
-      })
-      .catch(() => {
-        setUser(null);
-        setToken(null);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    const savedToken = localStorage.getItem(TOKEN_KEY);
+    if (savedToken) {
+      fetchProfile(savedToken)
+        .then((profile) => {
+          setToken(savedToken);
+          setUser(profile);
+        })
+        .catch(() => {
+          localStorage.removeItem(TOKEN_KEY);
+        })
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     setOnUnauthorized(() => {
       setToken(null);
       setUser(null);
+      localStorage.removeItem(TOKEN_KEY);
       toast.error("Sua sessão expirou. Faça login novamente.");
       router.push("/login");
     });
-  }, []);
+  }, [router]);
 
-  function handleLogin(newToken: string, newUser: User) {
+  const handleLogin = useCallback((newToken: string, newUser: User) => {
+    localStorage.setItem(TOKEN_KEY, newToken);
     setToken(newToken);
     setUser(newUser);
-  }
+  }, []);
 
-  function handleUpdateUser(data: Partial<User>) {
+  const handleUpdateUser = useCallback((data: Partial<User>) => {
     setUser((prev) => {
       if (!prev) return prev;
       return { ...prev, ...data };
     });
-  }
+  }, []);
 
   async function handleLogout() {
     try {
-      await logout();
+      await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/auth/logout`,
+        { method: "POST", credentials: "include" },
+      );
     } catch {
       // cookie might already be invalid
     }
+    localStorage.removeItem(TOKEN_KEY);
     setToken(null);
     setUser(null);
     router.push("/login");

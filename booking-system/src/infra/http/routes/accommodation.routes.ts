@@ -95,6 +95,12 @@ export async function registerAccommodationRoutes(
   app.post(
     "/accommodations",
     {
+      config: {
+        rateLimit: {
+          max: 20,
+          timeWindow: "1 minute",
+        },
+      },
       preHandler: [authenticate, validate(createAccommodationSchema), requireHost(deps.userRepository)],
       schema: {
         tags: ["Accommodations (Host)"],

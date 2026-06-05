@@ -3,19 +3,19 @@ import type { FastifyRequest } from "fastify";
 import { ValidationError } from "../../domain/errors/DomainError";
 
 export const registerSchema = z.object({
-  name: z.string().min(2, "Name must have at least 2 characters"),
-  email: z.string().email("Invalid email format"),
+  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres"),
+  email: z.string().email("Formato de email inválido"),
   password: z
     .string()
-    .min(8, "Password must have at least 8 characters")
+    .min(8, "A senha deve ter pelo menos 8 caracteres")
     .max(128, "A senha deve ter no máximo 128 caracteres")
-    .regex(/[a-zA-Z]/, "Password must contain at least one letter")
-    .regex(/[0-9]/, "Password must contain at least one number"),
+    .regex(/[a-zA-Z]/, "A senha deve conter pelo menos uma letra")
+    .regex(/[0-9]/, "A senha deve conter pelo menos um número"),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email format"),
-  password: z.string().min(1, "Password is required"),
+  email: z.string().email("Formato de email inválido"),
+  password: z.string().min(1, "A senha é obrigatória"),
 });
 
 export const bookingSchema = z.object({
@@ -42,10 +42,24 @@ export const updateAccommodationSchema = z.object({
 });
 
 export const updateProfileSchema = z.object({
-  name: z.string().min(2, "Name must have at least 2 characters").optional(),
-  avatarUrl: z.string().url("avatarUrl must be a valid URL").optional().or(z.literal("")),
-  bio: z.string().max(500, "Bio must have at most 500 characters").optional(),
-});
+  name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres").optional(),
+  avatarUrl: z.string().url("avatarUrl deve ser uma URL válida").optional().or(z.literal("")),
+  bio: z.string().max(500, "A bio deve ter no máximo 500 caracteres").optional(),
+  currentPassword: z.string().optional(),
+  newPassword: z
+    .string()
+    .min(8, "A nova senha deve ter pelo menos 8 caracteres")
+    .max(128, "A nova senha deve ter no máximo 128 caracteres")
+    .regex(/[a-zA-Z]/, "A nova senha deve conter pelo menos uma letra")
+    .regex(/[0-9]/, "A nova senha deve conter pelo menos um número")
+    .optional(),
+}).refine(
+  (data) => {
+    if (data.newPassword && !data.currentPassword) return false;
+    return true;
+  },
+  { message: "A senha atual é obrigatória para definir uma nova senha", path: ["currentPassword"] },
+);
 
 export const imageResponseSchema = {
   type: "object",

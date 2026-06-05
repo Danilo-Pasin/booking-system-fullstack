@@ -77,6 +77,12 @@ export async function registerBookingRoutes(
   app.post(
     "/bookings",
     {
+      config: {
+        rateLimit: {
+          max: 30,
+          timeWindow: "1 minute",
+        },
+      },
       preHandler: [validate(bookingSchema), authenticate],
       schema: {
         tags: ["Bookings"],

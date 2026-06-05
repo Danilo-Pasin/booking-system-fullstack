@@ -30,7 +30,7 @@ export class PrismaBookingRepository implements BookingRepository {
             const conflict = await tx.booking.findFirst({
               where: {
                 accommodationId: booking.accommodation.id,
-                status: { not: "REJECTED" },
+                status: { in: ["PENDING", "APPROVED"] },
                 AND: [
                   { checkIn:  { lt: booking.checkOut } },
                   { checkOut: { gt: booking.checkIn  } },
@@ -88,11 +88,12 @@ export class PrismaBookingRepository implements BookingRepository {
     return this.toSummary(booking);
   }
 
-  async hasConflict(accommodationId: string, checkIn: Date, checkOut: Date): Promise<boolean> {
+  async hasConflict(accommodationId: string, checkIn: Date, checkOut: Date, excludeBookingId?: string): Promise<boolean> {
     const conflict = await prisma.booking.findFirst({
       where: {
         accommodationId,
-        status: "APPROVED",
+        id: excludeBookingId ? { not: excludeBookingId } : undefined,
+        status: { in: ["PENDING", "APPROVED"] },
         AND: [
           { checkIn:  { lt: checkOut } },
           { checkOut: { gt: checkIn  } },

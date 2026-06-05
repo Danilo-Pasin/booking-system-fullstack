@@ -34,6 +34,7 @@ export class PrismaUserRepository implements UserRepository {
         role: user.role,
         avatarUrl: user.avatarUrl ?? null,
         bio: user.bio ?? null,
+        ...(user.password ? { password: user.password } : {}),
       },
     });
   }

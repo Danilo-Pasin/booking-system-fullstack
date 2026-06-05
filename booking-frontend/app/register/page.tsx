@@ -3,13 +3,15 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { register } from "@/lib/api";
+import { register as apiRegister } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { Input } from "@/components/ui/Input";
 import { FormCard } from "@/components/ui/FormCard";
 import { Button } from "@/components/ui/button";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { login } = useAuth();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,9 +46,10 @@ export default function RegisterPage() {
     if (!validate()) return;
     setLoading(true);
     try {
-      await register(name, email, password);
+      const data = await apiRegister(name, email, password);
+      login(data.token, data.user);
       toast.success("Conta criada com sucesso!");
-      router.push("/login");
+      router.push("/");
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Falha ao cadastrar");
     } finally {

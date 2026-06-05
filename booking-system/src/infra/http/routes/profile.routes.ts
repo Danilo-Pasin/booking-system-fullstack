@@ -61,6 +61,8 @@ export async function registerProfileRoutes(
             name: { type: "string", minLength: 2 },
             avatarUrl: { type: "string" },
             bio: { type: "string", maxLength: 500 },
+            currentPassword: { type: "string", description: "Obrigatória se newPassword for informada" },
+            newPassword: { type: "string", minLength: 8, description: "Deve conter pelo menos uma letra e um número" },
           },
         },
         response: {
@@ -82,12 +84,14 @@ export async function registerProfileRoutes(
     },
     async (request) => {
       const user = request.user as { id: string };
-      const { name, avatarUrl, bio } = request.body as {
+      const { name, avatarUrl, bio, currentPassword, newPassword } = request.body as {
         name?: string;
         avatarUrl?: string;
         bio?: string;
+        currentPassword?: string;
+        newPassword?: string;
       };
-      return deps.updateProfile.execute({ userId: user.id, name, avatarUrl, bio });
+      return deps.updateProfile.execute({ userId: user.id, name, avatarUrl, bio, currentPassword, newPassword });
     },
   );
 
