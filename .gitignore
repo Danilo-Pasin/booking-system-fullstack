@@ -52,3 +52,7 @@ booking-system/src/generated/prisma
 
 # ── Docker ──
 .dockerignore
+
+# ── Repo docs ──
+agents.md
+resumo.md
