@@ -35,7 +35,7 @@ export default function ProfilePage() {
       .catch(() => {
         router.push("/");
       });
-  }, [user, token, isLoading]);
+  }, [user, token, isLoading, router, updateUser]);
 
   async function handleUpgrade() {
     if (!token) return;

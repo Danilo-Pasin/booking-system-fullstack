@@ -45,15 +45,7 @@ export class PrismaUserRepository implements UserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    console.log("[PrismaUserRepository.findById] entry id:", id);
-    try {
-      const raw = await prisma.user.findUnique({ where: { id } });
-      console.log("[PrismaUserRepository.findById] exit", raw ? "found" : "not found");
-      return raw ? toDomain(raw) : null;
-    } catch (err) {
-      console.error("[PrismaUserRepository.findById] ERROR:", (err as Error).constructor?.name, (err as Error).message);
-      if ((err as any).code) console.error("[PrismaUserRepository.findById] Prisma code:", (err as any).code);
-      throw err;
-    }
+    const raw = await prisma.user.findUnique({ where: { id } });
+    return raw ? toDomain(raw) : null;
   }
 }

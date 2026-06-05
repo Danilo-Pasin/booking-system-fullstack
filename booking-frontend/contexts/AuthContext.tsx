@@ -51,7 +51,7 @@ export function AuthProvider({
         })
         .finally(() => setIsLoading(false));
     } else {
-      setIsLoading(false);
+      queueMicrotask(() => setIsLoading(false));
     }
   }, []);
 

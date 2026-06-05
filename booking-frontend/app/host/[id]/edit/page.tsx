@@ -36,25 +36,20 @@ export default function EditAccommodationPage() {
   useEffect(() => {
     if (isLoading) return;
     if (!user || user.role !== "HOST") { router.push("/"); return; }
-    if (!id) return;
-    load(id);
-  }, [user, token, id, isLoading]);
+    if (!id || !token) return;
 
-  async function load(accommodationId: string) {
-    try {
-      const data = await fetchAccommodation(accommodationId);
-      setName(data.name);
-      setType(data.type);
-      setPricePerNight(String(data.pricePerNight));
-      setDescription(data.description ?? "");
-      setImageUrl(data.imageUrl ?? "");
-      setImagePreview(data.imageUrl ?? "");
-    } catch {
-      setNotFound(true);
-    } finally {
-      setLoading(false);
-    }
-  }
+    fetchAccommodation(id)
+      .then((data) => {
+        setName(data.name);
+        setType(data.type);
+        setPricePerNight(String(data.pricePerNight));
+        setDescription(data.description ?? "");
+        setImageUrl(data.imageUrl ?? "");
+        setImagePreview(data.imageUrl ?? "");
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [user, token, id, isLoading, router]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

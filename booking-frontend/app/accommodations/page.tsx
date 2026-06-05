@@ -31,7 +31,6 @@ function AccommodationsContent() {
   }
 
   useEffect(() => {
-    setLoading(true);
     const params = new URLSearchParams();
     if (filters.search) params.set("search", filters.search);
     if (filters.type && filters.type !== "all") params.set("type", filters.type);

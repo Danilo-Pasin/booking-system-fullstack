@@ -10,14 +10,10 @@ export class GetCurrentUser {
   constructor(private readonly userRepository: UserRepository) {}
 
   async execute(input: GetCurrentUserInput) {
-    console.log("[GetCurrentUser] entry userId:", input.userId);
     const user = await this.userRepository.findById(input.userId);
     if (!user) {
-      console.log("[GetCurrentUser] user not found");
       throw new NotFoundError("User not found");
     }
-
-    console.log("[GetCurrentUser] exit OK");
     return toUserResponse(user);
   }
 }

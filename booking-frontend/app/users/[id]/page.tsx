@@ -4,7 +4,6 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { fetchPublicUser } from "@/lib/api";
 import AvatarWithFallback from "@/components/AvatarWithFallback";
-import { getErrorMessage } from "@/lib/errors";
 import type { UserPublic } from "@/lib/types";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { FormCard } from "@/components/ui/FormCard";
@@ -24,7 +23,7 @@ export default function UserProfilePage() {
         setUser(data);
         setLoading(false);
       })
-      .catch((err: unknown) => {
+      .catch(() => {
         setNotFound(true);
         setLoading(false);
       });

@@ -1,0 +1,26 @@
+# ── Secrets ──
+.env
+.env.*
+
+# ── Dependencies ──
+node_modules
+
+# ── Build / Output ──
+dist
+.next
+out
+build
+coverage
+
+# ── Git / IDE / OS ──
+.git
+.idea
+.vscode
+.DS_Store
+
+# ── Logs ──
+*.log
+
+# ── Docker ──
+.dockerignore
+Dockerfile

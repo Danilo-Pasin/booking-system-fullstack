@@ -69,8 +69,25 @@ export default function HostPage() {
   useEffect(() => {
     if (isLoading) return;
     if (!user || user.role !== "HOST") { router.push("/"); return; }
-    load();
-  }, [user, token, isLoading, load, router]);
+    if (!token) return;
+    Promise.all([
+      fetchMyAccommodations(token),
+      fetchHostDashboard(token),
+      fetchHostBookings(token),
+    ])
+      .then(([accData, dashData, hostBookings]) => {
+        setAccommodations(accData);
+        setDashboard({
+          accommodationsCount: dashData.accommodationsCount,
+          bookingsCount: dashData.bookingsCount,
+          estimatedRevenue: dashData.estimatedRevenue,
+        });
+        setBookings(hostBookings);
+        setPendingBookings(hostBookings.filter(b => b.status === "PENDING"));
+      })
+      .catch((err: unknown) => setError(getErrorMessage(err)))
+      .finally(() => setLoading(false));
+  }, [user, token, isLoading, router]);
 
   async function handleDelete(id: string) {
     if (!token) return;
