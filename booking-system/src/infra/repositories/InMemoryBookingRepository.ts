@@ -16,6 +16,7 @@ export class InMemoryBookingRepository implements BookingRepository {
       createdAt: booking.createdAt,
       userId: booking.userId,
       userName: "",
+      userEmail: undefined,
       accommodation: {
         id: booking.accommodation.id,
         name: booking.accommodation.name,
@@ -75,9 +76,9 @@ export class InMemoryBookingRepository implements BookingRepository {
     );
   }
 
-  async findByUserId(userId: string): Promise<BookingSummary[]> {
+  async findByUserId(userId: string, statuses?: BookingStatus[]): Promise<BookingSummary[]> {
     return Array.from(this.store.values())
-      .filter((b) => b.userId === userId)
+      .filter((b) => b.userId === userId && (!statuses || statuses.includes(b.status)))
       .map((b) => this.toSummary(b));
   }
 

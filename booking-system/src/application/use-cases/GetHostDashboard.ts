@@ -22,16 +22,16 @@ export class GetHostDashboard {
     const accommodations = await this.accommodationRepository.findByOwnerId(input.ownerId);
     const bookings = await this.bookingRepository.findByAccommodationOwnerId(input.ownerId);
 
-    const estimatedRevenue = bookings.filter(b => b.status === "APPROVED").reduce(
-      (sum, b) => sum + b.totalPrice,
-      0,
-    );
+    const activeBookings = bookings.filter(b => b.status !== "CANCELED" && b.status !== "REJECTED");
+    const estimatedRevenue = bookings
+      .filter(b => b.status === "APPROVED")
+      .reduce((sum, b) => sum + b.totalPrice, 0);
 
     const pendingBookings = bookings.filter(b => b.status === "PENDING");
 
     return {
       accommodationsCount: accommodations.length,
-      bookingsCount: bookings.length,
+      bookingsCount: activeBookings.length,
       estimatedRevenue,
       pendingBookings,
     };

@@ -103,23 +103,29 @@ export default function EditProfilePage() {
 
   if (isLoading || loading) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-20">
-        <div className="border rounded-2xl p-8 space-y-6 bg-card">
-          <Skeleton className="h-6 w-1/2 mx-auto" />
-          <Skeleton className="h-4 w-1/3 mx-auto" />
-          <Skeleton className="h-12 rounded-lg" />
-          <Skeleton className="h-12 rounded-lg" />
-          <Skeleton className="h-24 rounded-lg" />
-          <Skeleton className="h-12 rounded-lg" />
-        </div>
-      </div>
+      <ProtectedRoute>
+        <main className="max-w-7xl mx-auto px-6 py-10">
+          <Skeleton className="h-5 w-32 mb-8" />
+          <div className="max-w-lg mx-auto">
+            <div className="border rounded-2xl p-8 space-y-6 bg-card">
+              <Skeleton className="h-6 w-1/2 mx-auto" />
+              <Skeleton className="h-4 w-1/3 mx-auto" />
+              <Skeleton className="h-12 rounded-lg" />
+              <Skeleton className="h-12 rounded-lg" />
+              <Skeleton className="h-24 rounded-lg" />
+              <Skeleton className="h-12 rounded-lg" />
+            </div>
+          </div>
+        </main>
+      </ProtectedRoute>
     );
   }
 
   return (
     <ProtectedRoute>
-      <Breadcrumbs />
-      <FormCard title="Editar perfil" subtitle="Atualize suas informações">
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        <Breadcrumbs />
+        <FormCard title="Editar perfil" subtitle="Atualize suas informações">
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <Input
@@ -195,6 +201,7 @@ export default function EditProfilePage() {
           </Link>
         </p>
       </FormCard>
+      </main>
     </ProtectedRoute>
   );
 }

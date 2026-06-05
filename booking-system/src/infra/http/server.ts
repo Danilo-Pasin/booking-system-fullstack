@@ -33,6 +33,7 @@ import { GetBookingById } from "../../application/use-cases/GetBookingById";
 import { UpdateBookingStatus } from "../../application/use-cases/UpdateBookingStatus";
 import { UpgradeToHost } from "../../application/use-cases/UpgradeToHost";
 import { GetHostDashboard } from "../../application/use-cases/GetHostDashboard";
+import { ListHostBookings } from "../../application/use-cases/ListHostBookings";
 import { PlatformFee, ServiceFee, LongStayDiscount } from "../../domain/fees/Fee";
 import {
   DomainError,
@@ -173,6 +174,7 @@ const getBookingById = new GetBookingById(bookingRepo);
 const upgradeToHost = new UpgradeToHost(userRepo);
 const updateBookingStatus = new UpdateBookingStatus(bookingRepo);
 const getHostDashboard = new GetHostDashboard(accommodationRepo, bookingRepo);
+const listHostBookings = new ListHostBookings(bookingRepo);
 const cloudinaryStorage = new CloudinaryStorage();
 const uploadImage = new UploadImage(cloudinaryStorage);
 
@@ -200,7 +202,7 @@ await registerBookingRoutes(app, {
   userRepository: userRepo,
 });
 
-await registerHostRoutes(app, { userRepository: userRepo, getHostDashboard });
+await registerHostRoutes(app, { userRepository: userRepo, getHostDashboard, listHostBookings });
 await registerUploadRoutes(app, { uploadImage });
 
 // ──────────────────────────────────────────────

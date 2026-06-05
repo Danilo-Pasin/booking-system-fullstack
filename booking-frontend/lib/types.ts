@@ -47,6 +47,20 @@ export type Booking = {
   accommodation: Accommodation;
 };
 
+export type HostBooking = {
+  id: string;
+  checkIn: string;
+  checkOut: string;
+  basePrice: number;
+  totalPrice: number;
+  status: string;
+  createdAt: string;
+  userId: string;
+  userName: string;
+  userEmail?: string;
+  accommodation: Accommodation;
+};
+
 export type DashboardData = {
   accommodationsCount: number;
   bookingsCount: number;

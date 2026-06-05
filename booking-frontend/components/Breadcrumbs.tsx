@@ -49,14 +49,17 @@ export function Breadcrumbs({ segments: customSegments }: { segments?: { label: 
       );
 
   return (
-    <nav className="flex items-center gap-2 text-sm text-muted-foreground mb-6 flex-wrap">
+    <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-8 flex-wrap">
       {items.map((seg, i) => (
-        <span key={i} className="flex items-center gap-2">
-          {i > 0 && <span className="text-muted-foreground/50">&#8250;</span>}
+        <span key={i} className="flex items-center gap-1">
+          {i > 0 && <span className="text-muted-foreground/30 mx-1 select-none">›</span>}
           {i === items.length - 1 ? (
-            <span className="text-foreground">{seg.label}</span>
+            <span className="text-foreground font-medium">{seg.label}</span>
           ) : (
-            <Link href={seg.href || "/"} className="hover:text-foreground transition">
+            <Link
+              href={seg.href || "/"}
+              className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+            >
               {seg.label}
             </Link>
           )}
