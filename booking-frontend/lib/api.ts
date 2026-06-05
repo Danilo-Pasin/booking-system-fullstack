@@ -2,6 +2,7 @@ import type {
   Accommodation,
   Booking,
   DashboardData,
+  HostBooking,
   PricePreview,
   User,
   UserPublic,
@@ -238,6 +239,14 @@ export async function fetchHostDashboard(token: string): Promise<DashboardData> 
     credentials: "include",
   });
   return handleResponse<DashboardData>(res);
+}
+
+export async function fetchHostBookings(token: string): Promise<HostBooking[]> {
+  const res = await fetch(`${API_URL}/host/bookings`, {
+    headers: authHeader(token),
+    credentials: "include",
+  });
+  return handleResponse<HostBooking[]>(res);
 }
 
 export async function updateBookingStatus(

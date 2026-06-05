@@ -73,7 +73,7 @@ export class PrismaBookingRepository implements BookingRepository {
 
   async findAll(): Promise<BookingSummary[]> {
     const bookings = await prisma.booking.findMany({
-      include: { accommodation: true, user: { select: { name: true } } },
+      include: { accommodation: true, user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "desc" },
     });
     return bookings.map(this.toSummary);
@@ -82,7 +82,7 @@ export class PrismaBookingRepository implements BookingRepository {
   async findById(id: string): Promise<BookingSummary | null> {
     const booking = await prisma.booking.findUnique({
       where: { id },
-      include: { accommodation: true, user: { select: { name: true } } },
+      include: { accommodation: true, user: { select: { name: true, email: true } } },
     });
     if (!booking) return null;
     return this.toSummary(booking);
@@ -103,10 +103,13 @@ export class PrismaBookingRepository implements BookingRepository {
     return conflict !== null;
   }
 
-  async findByUserId(userId: string): Promise<BookingSummary[]> {
+  async findByUserId(userId: string, statuses?: BookingStatus[]): Promise<BookingSummary[]> {
     const bookings = await prisma.booking.findMany({
-      where: { userId },
-      include: { accommodation: true, user: { select: { name: true } } },
+      where: {
+        userId,
+        ...(statuses ? { status: { in: statuses } } : {}),
+      },
+      include: { accommodation: true, user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "desc" },
     });
     return bookings.map(this.toSummary);
@@ -117,7 +120,7 @@ export class PrismaBookingRepository implements BookingRepository {
       where: {
         accommodation: { ownerId },
       },
-      include: { accommodation: true, user: { select: { name: true } } },
+      include: { accommodation: true, user: { select: { name: true, email: true } } },
       orderBy: { createdAt: "desc" },
     });
     return bookings.map(this.toSummary);
@@ -132,7 +135,7 @@ export class PrismaBookingRepository implements BookingRepository {
       const booking = await prisma.booking.update({
         where: { id, status: "PENDING" },
         data: { status: status as any },
-        include: { accommodation: true, user: { select: { name: true } } },
+        include: { accommodation: true, user: { select: { name: true, email: true } } },
       });
       return this.toSummary(booking);
     } catch (err) {
@@ -155,6 +158,7 @@ export class PrismaBookingRepository implements BookingRepository {
       createdAt:  booking.createdAt,
       userId:     booking.userId,
       userName:   booking.user?.name ?? "",
+      userEmail:  booking.user?.email ?? undefined,
       accommodation: {
         id:      booking.accommodation.id,
         name:    booking.accommodation.name,

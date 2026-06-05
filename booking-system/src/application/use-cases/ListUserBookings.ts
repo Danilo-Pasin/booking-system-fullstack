@@ -1,7 +1,9 @@
-import { BookingRepository } from "../../domain/repositories/BookingRepository";
+import { BookingRepository, BookingSummary } from "../../domain/repositories/BookingRepository";
+import type { BookingStatus } from "../../domain/entities/Booking";
 
 export interface ListUserBookingsInput {
   userId: string;
+  statuses?: BookingStatus[];
 }
 
 export class ListUserBookings {
@@ -9,7 +11,7 @@ export class ListUserBookings {
     private readonly bookingRepository: BookingRepository,
   ) {}
 
-  async execute(input: ListUserBookingsInput) {
-    return this.bookingRepository.findByUserId(input.userId);
+  async execute(input: ListUserBookingsInput): Promise<BookingSummary[]> {
+    return this.bookingRepository.findByUserId(input.userId, input.statuses);
   }
 }

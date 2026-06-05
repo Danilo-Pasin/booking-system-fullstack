@@ -55,14 +55,19 @@ export default function ProfilePage() {
 
   if (isLoading || loading) {
     return (
-      <div className="max-w-lg mx-auto px-4 py-20">
-        <div className="border rounded-2xl p-8 space-y-6 bg-card">
-          <Skeleton className="w-24 h-24 rounded-full mx-auto" />
-          <Skeleton className="h-6 w-1/2 mx-auto" />
-          <Skeleton className="h-4 w-1/3 mx-auto" />
-          <Skeleton className="h-4 w-3/4 mx-auto" />
-        </div>
-      </div>
+      <ProtectedRoute>
+        <main className="max-w-7xl mx-auto px-6 py-10">
+          <Skeleton className="h-5 w-32 mb-8" />
+          <div className="max-w-lg mx-auto">
+            <div className="border rounded-2xl p-8 space-y-6 bg-card">
+              <Skeleton className="w-24 h-24 rounded-full mx-auto" />
+              <Skeleton className="h-6 w-1/2 mx-auto" />
+              <Skeleton className="h-4 w-1/3 mx-auto" />
+              <Skeleton className="h-4 w-3/4 mx-auto" />
+            </div>
+          </div>
+        </main>
+      </ProtectedRoute>
     );
   }
 
@@ -70,8 +75,9 @@ export default function ProfilePage() {
 
   return (
     <ProtectedRoute>
-      <Breadcrumbs />
-      <FormCard title={profile.name} subtitle={profile.email}>
+      <main className="max-w-7xl mx-auto px-6 py-10">
+        <Breadcrumbs />
+        <FormCard title={profile.name} subtitle={profile.email}>
         <div className="flex justify-center mb-4">
           <AvatarWithFallback
             src={profile.avatarUrl}
@@ -112,6 +118,7 @@ export default function ProfilePage() {
           </Button>
         </div>
       </FormCard>
+      </main>
 
       <ConfirmModal
         open={showConfirm}

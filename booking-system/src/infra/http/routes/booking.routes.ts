@@ -159,6 +159,15 @@ export async function registerBookingRoutes(
         tags: ["Bookings"],
         summary: "List user bookings",
         security: [{ bearerAuth: [] }],
+        querystring: {
+          type: "object",
+          properties: {
+            status: {
+              type: "string",
+              description: "Comma-separated statuses to filter (e.g. PENDING,APPROVED)",
+            },
+          },
+        },
         response: {
           200: {
             description: "User bookings",
@@ -195,7 +204,11 @@ export async function registerBookingRoutes(
     },
     async (request) => {
       const user = request.user as { id: string };
-      const bookings = await deps.listUserBookings.execute({ userId: user.id });
+      const query = request.query as { status?: string };
+      const statuses = query.status
+        ? (query.status.split(",") as any[])
+        : undefined;
+      const bookings = await deps.listUserBookings.execute({ userId: user.id, statuses });
       return bookings.map((b: any) => ({
         id: b.id,
         checkIn: b.checkIn,
