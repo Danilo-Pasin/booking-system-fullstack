@@ -53,6 +53,13 @@ booking-system/src/generated/prisma
 # ── Docker ──
 .dockerignore
 
+# ── Security / Secrets ──
+*.key
+*.pem
+credentials*
+secrets*
+dump.rdb
+
 # ── Repo docs ──
 /AGENTS.MD
 /RESUMO.md
