@@ -12,9 +12,12 @@ describe("calcDays", () => {
     expect(result).toBe(4);
   });
 
-  it("returns 0 days for same day", () => {
-    const result = calcDays(new Date("2025-06-01"), new Date("2025-06-01"));
-    expect(result).toBe(0);
+  it("throws for same day (invalid range)", () => {
+    expect(() => calcDays(new Date("2025-06-01"), new Date("2025-06-01"))).toThrow("O check-out deve ser posterior ao check-in.");
+  });
+
+  it("throws for check-out before check-in", () => {
+    expect(() => calcDays(new Date("2025-06-05"), new Date("2025-06-01"))).toThrow("O check-out deve ser posterior ao check-in.");
   });
 
   it("returns 7 days for week-long stay", () => {

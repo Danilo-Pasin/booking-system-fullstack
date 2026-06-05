@@ -1,99 +1,103 @@
 export class DomainError extends Error {
   constructor(message?: string) {
-    super(message ?? "Domain error");
+    super(message ?? "Erro de domínio");
     this.name = this.constructor.name;
   }
 }
 
 export class ValidationError extends DomainError {
   constructor(message?: string) {
-    super(message ?? "Validation error");
+    super(message ?? "Erro de validação");
   }
 }
 export class PastCheckInError extends ValidationError {
   constructor() {
-    super("Check-in cannot be in the past.");
+    super("O check-in não pode estar no passado.");
   }
 }
 export class InvalidDateRangeError extends ValidationError {
   constructor() {
-    super("Check-out must be after check-in.");
+    super("O check-out deve ser posterior ao check-in.");
   }
 }
 
 export class NotFoundError extends DomainError {
   constructor(message?: string) {
-    super(message ?? "Not found");
+    super(message ?? "Não encontrado");
   }
 }
 export class AccommodationNotFoundError extends NotFoundError {
   constructor() {
-    super("Accommodation not found");
+    super("Acomodação não encontrada");
   }
 }
-export class BookingNotFoundError extends NotFoundError {}
+export class BookingNotFoundError extends NotFoundError {
+  constructor() {
+    super("Reserva não encontrada");
+  }
+}
 
 export class ConflictError extends DomainError {
   constructor(message?: string) {
-    super(message ?? "Conflict");
+    super(message ?? "Conflito");
   }
 }
 export class AccommodationUnavailableError extends ConflictError {
   constructor() {
-    super("Accommodation is not available for the selected dates.");
+    super("A acomodação não está disponível para as datas selecionadas.");
   }
 }
 export class EmailAlreadyInUseError extends ConflictError {
   constructor() {
-    super("Email already in use.");
+    super("Este email já está em uso.");
   }
 }
 export class AlreadyHostError extends ConflictError {
   constructor() {
-    super("User is already a HOST.");
+    super("O usuário já é um HOST.");
   }
 }
 
 export class UnauthorizedError extends DomainError {
   constructor(message?: string) {
-    super(message ?? "Unauthorized");
+    super(message ?? "Não autorizado");
   }
 }
 export class InvalidCredentialsError extends UnauthorizedError {
   constructor() {
-    super("Invalid email or password.");
+    super("Email ou senha inválidos.");
   }
 }
 
 export class ForbiddenError extends DomainError {
   constructor(message?: string) {
-    super(message ?? "Forbidden");
+    super(message ?? "Acesso negado");
   }
 }
 export class HostOnlyError extends ForbiddenError {
   constructor() {
-    super("Only hosts can perform this action.");
+    super("Apenas anfitriões podem realizar esta ação.");
   }
 }
 export class NotOwnerError extends ForbiddenError {
   constructor() {
-    super("You do not own this accommodation.");
+    super("Você não é o proprietário desta acomodação.");
   }
 }
 
 export class UploadFailedError extends DomainError {
   constructor() {
-    super("File upload failed.");
+    super("Falha no upload do arquivo.");
   }
 }
 
 export class BookingNotPendingError extends ValidationError {
   constructor(currentStatus: string) {
-    super(`Booking cannot be processed because it is ${currentStatus}. Only PENDING bookings can be updated.`);
+    super(`A reserva não pode ser processada pois está ${currentStatus}. Apenas reservas PENDING podem ser atualizadas.`);
   }
 }
 export class BookingAlreadyApprovedError extends ConflictError {
   constructor() {
-    super("This accommodation already has an APPROVED booking for the requested dates.");
+    super("Esta acomodação já possui uma reserva APROVADA para as datas solicitadas.");
   }
 }

@@ -6,7 +6,7 @@ export interface BookingRepository {
   findAll(): Promise<BookingSummary[]>;
   findById(id: string): Promise<BookingSummary | null>;
   delete(id: string): Promise<void>;
-  hasConflict(accommodationId: string, checkIn: Date, checkOut: Date): Promise<boolean>;
+  hasConflict(accommodationId: string, checkIn: Date, checkOut: Date, excludeBookingId?: string): Promise<boolean>;
   findByUserId(userId: string): Promise<BookingSummary[]>;
   findByAccommodationOwnerId(ownerId: string): Promise<BookingSummary[]>;
   updateStatus(id: string, status: BookingStatus): Promise<BookingSummary>;

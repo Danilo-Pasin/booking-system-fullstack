@@ -41,12 +41,19 @@ export async function registerAuthRoutes(
             description: "User created",
             type: "object",
             properties: {
-              id: { type: "string" },
-              name: { type: "string" },
-              email: { type: "string" },
-              role: { type: "string", enum: ["GUEST", "HOST"] },
-              avatarUrl: { type: "string" },
-              bio: { type: "string" },
+              token: { type: "string" },
+              user: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  name: { type: "string" },
+                  email: { type: "string" },
+                  role: { type: "string", enum: ["GUEST", "HOST"] },
+                  avatarUrl: { type: "string" },
+                  bio: { type: "string" },
+                  createdAt: { type: "string", format: "date-time" },
+                },
+              },
             },
           },
         },
@@ -60,8 +67,19 @@ export async function registerAuthRoutes(
         role?: "GUEST" | "HOST";
       };
       const user = await deps.registerUser.execute({ name, email, password, role });
+      const token = app.jwt.sign(
+        { id: user.id, role: user.role },
+        { expiresIn: "24h" },
+      );
+      const isProduction = process.env.NODE_ENV === "production";
+      reply.setCookie("token", token, {
+        httpOnly: true,
+        sameSite: isProduction ? "none" : "lax",
+        path: "/",
+        secure: isProduction,
+      });
       reply.status(201);
-      return user;
+      return { token, user };
     },
   );
 
@@ -116,11 +134,12 @@ export async function registerAuthRoutes(
         { id: user.id, role: user.role },
         { expiresIn: "24h" },
       );
+      const isProduction = process.env.NODE_ENV === "production";
       reply.setCookie("token", token, {
         httpOnly: true,
-        sameSite: "none",
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: isProduction,
       });
       return { token, user };
     },
@@ -129,6 +148,12 @@ export async function registerAuthRoutes(
   app.put(
     "/auth/become-host",
     {
+      config: {
+        rateLimit: {
+          max: 10,
+          timeWindow: "1 minute",
+        },
+      },
       preHandler: authenticate,
       schema: {
         tags: ["Auth"],
@@ -169,11 +194,12 @@ export async function registerAuthRoutes(
         { id: updatedUser.id, role: "HOST" },
         { expiresIn: "24h" },
       );
+      const isProduction = process.env.NODE_ENV === "production";
       reply.setCookie("token", token, {
         httpOnly: true,
-        sameSite: "none",
+        sameSite: isProduction ? "none" : "lax",
         path: "/",
-        secure: process.env.NODE_ENV === "production",
+        secure: isProduction,
       });
       return { token, user: updatedUser };
     },

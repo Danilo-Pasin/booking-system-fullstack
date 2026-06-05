@@ -34,6 +34,7 @@ export class UpdateBookingStatus {
         booking.accommodation.id,
         booking.checkIn,
         booking.checkOut,
+        input.bookingId,
       );
       if (conflict) throw new BookingAlreadyApprovedError();
     }

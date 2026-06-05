@@ -16,10 +16,26 @@ import {
   UploadFailedError,
 } from "../domain/errors/DomainError";
 
+const PT_BR = {
+  HostOnlyError: "Apenas anfitriões podem realizar esta ação.",
+  NotOwnerError: "Você não é o proprietário desta acomodação.",
+  ValidationError: "Erro de validação",
+  PastCheckInError: "O check-in não pode estar no passado.",
+  InvalidDateRangeError: "O check-out deve ser posterior ao check-in.",
+  NotFoundError: "Não encontrado",
+  BookingNotFoundError: "Reserva não encontrada",
+  ConflictError: "Conflito",
+  EmailAlreadyInUseError: "Este email já está em uso.",
+  UnauthorizedError: "Não autorizado",
+  InvalidCredentialsError: "Email ou senha inválidos.",
+  ForbiddenError: "Acesso negado",
+  UploadFailedError: "Falha no upload do arquivo.",
+};
+
 describe("HostOnlyError", () => {
   it("has correct message", () => {
     const err = new HostOnlyError();
-    expect(err.message).toBe("Only hosts can perform this action.");
+    expect(err.message).toBe(PT_BR.HostOnlyError);
     expect(err.name).toBe("HostOnlyError");
   });
 
@@ -34,7 +50,7 @@ describe("HostOnlyError", () => {
 describe("NotOwnerError", () => {
   it("has correct message", () => {
     const err = new NotOwnerError();
-    expect(err.message).toBe("You do not own this accommodation.");
+    expect(err.message).toBe(PT_BR.NotOwnerError);
     expect(err.name).toBe("NotOwnerError");
   });
 
@@ -48,7 +64,7 @@ describe("NotOwnerError", () => {
 describe("ValidationError", () => {
   it("has default message", () => {
     const err = new ValidationError();
-    expect(err.message).toBe("Validation error");
+    expect(err.message).toBe(PT_BR.ValidationError);
     expect(err.name).toBe("ValidationError");
   });
 
@@ -66,7 +82,7 @@ describe("ValidationError", () => {
 describe("PastCheckInError", () => {
   it("has correct message", () => {
     const err = new PastCheckInError();
-    expect(err.message).toBe("Check-in cannot be in the past.");
+    expect(err.message).toBe(PT_BR.PastCheckInError);
     expect(err.name).toBe("PastCheckInError");
   });
 
@@ -80,7 +96,7 @@ describe("PastCheckInError", () => {
 describe("InvalidDateRangeError", () => {
   it("has correct message", () => {
     const err = new InvalidDateRangeError();
-    expect(err.message).toBe("Check-out must be after check-in.");
+    expect(err.message).toBe(PT_BR.InvalidDateRangeError);
     expect(err.name).toBe("InvalidDateRangeError");
   });
 
@@ -94,7 +110,7 @@ describe("InvalidDateRangeError", () => {
 describe("NotFoundError", () => {
   it("has default message", () => {
     const err = new NotFoundError();
-    expect(err.message).toBe("Not found");
+    expect(err.message).toBe(PT_BR.NotFoundError);
     expect(err.name).toBe("NotFoundError");
   });
 
@@ -112,7 +128,7 @@ describe("NotFoundError", () => {
 describe("BookingNotFoundError", () => {
   it("has default message", () => {
     const err = new BookingNotFoundError();
-    expect(err.message).toBe("Not found");
+    expect(err.message).toBe(PT_BR.BookingNotFoundError);
     expect(err.name).toBe("BookingNotFoundError");
   });
 
@@ -126,7 +142,7 @@ describe("BookingNotFoundError", () => {
 describe("ConflictError", () => {
   it("has default message", () => {
     const err = new ConflictError();
-    expect(err.message).toBe("Conflict");
+    expect(err.message).toBe(PT_BR.ConflictError);
     expect(err.name).toBe("ConflictError");
   });
 
@@ -139,7 +155,7 @@ describe("ConflictError", () => {
 describe("EmailAlreadyInUseError", () => {
   it("has correct message", () => {
     const err = new EmailAlreadyInUseError();
-    expect(err.message).toBe("Email already in use.");
+    expect(err.message).toBe(PT_BR.EmailAlreadyInUseError);
     expect(err.name).toBe("EmailAlreadyInUseError");
   });
 
@@ -153,7 +169,7 @@ describe("EmailAlreadyInUseError", () => {
 describe("UnauthorizedError", () => {
   it("has default message", () => {
     const err = new UnauthorizedError();
-    expect(err.message).toBe("Unauthorized");
+    expect(err.message).toBe(PT_BR.UnauthorizedError);
     expect(err.name).toBe("UnauthorizedError");
   });
 
@@ -166,7 +182,7 @@ describe("UnauthorizedError", () => {
 describe("InvalidCredentialsError", () => {
   it("has correct message", () => {
     const err = new InvalidCredentialsError();
-    expect(err.message).toBe("Invalid email or password.");
+    expect(err.message).toBe(PT_BR.InvalidCredentialsError);
     expect(err.name).toBe("InvalidCredentialsError");
   });
 
@@ -180,7 +196,7 @@ describe("InvalidCredentialsError", () => {
 describe("ForbiddenError", () => {
   it("has default message", () => {
     const err = new ForbiddenError();
-    expect(err.message).toBe("Forbidden");
+    expect(err.message).toBe(PT_BR.ForbiddenError);
     expect(err.name).toBe("ForbiddenError");
   });
 
@@ -193,7 +209,7 @@ describe("ForbiddenError", () => {
 describe("UploadFailedError", () => {
   it("has correct message", () => {
     const err = new UploadFailedError();
-    expect(err.message).toBe("File upload failed.");
+    expect(err.message).toBe(PT_BR.UploadFailedError);
     expect(err.name).toBe("UploadFailedError");
   });
 
