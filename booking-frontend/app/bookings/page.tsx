@@ -1,6 +1,5 @@
 "use client";
-import { useEffect, useState, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 import { fetchBookings, cancelBooking } from "@/lib/api";
@@ -45,30 +44,20 @@ function BookingSkeleton() {
 }
 
 export default function BookingsPage() {
-  const router = useRouter();
-  const { user, token, isLoading } = useAuth();
+  const { token, isLoading } = useAuth();
   const [allBookings, setAllBookings] = useState<BookingWithMeta[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [cancelling, setCancelling] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  const loadBookings = useCallback(async () => {
-    if (!token) return;
-    try {
-      const data = await fetchBookings(token);
-      setAllBookings(data);
-    } catch (err: unknown) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [token]);
-
   useEffect(() => {
-    if (isLoading) return;
-    loadBookings();
-  }, [isLoading, loadBookings]);
+    if (isLoading || !token) return;
+    fetchBookings(token)
+      .then((data) => setAllBookings(data))
+      .catch((err: unknown) => setError(getErrorMessage(err)))
+      .finally(() => setLoading(false));
+  }, [isLoading, token]);
 
   const activeBookings = allBookings.filter(
     (b) => b.status === "PENDING" || b.status === "APPROVED",
@@ -76,10 +65,6 @@ export default function BookingsPage() {
   const historyBookings = allBookings.filter(
     (b) => b.status === "REJECTED" || b.status === "CANCELED" || (b.status && !["PENDING", "APPROVED", "REJECTED", "CANCELED"].includes(b.status)),
   );
-
-  function isCancellable(status?: string) {
-    return status === "PENDING";
-  }
 
   async function handleCancel(id: string) {
     if (!token) return;

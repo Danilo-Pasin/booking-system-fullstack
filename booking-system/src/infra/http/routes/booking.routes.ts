@@ -67,8 +67,8 @@ export async function registerBookingRoutes(
       };
       const breakdown = await deps.previewPrice.execute({
         accommodationId,
-        checkIn: new Date(checkIn),
-        checkOut: new Date(checkOut),
+        checkIn: new Date(checkIn + "T00:00:00"),
+        checkOut: new Date(checkOut + "T00:00:00"),
       });
       return breakdown;
     },
@@ -130,8 +130,8 @@ export async function registerBookingRoutes(
       };
       const booking = await deps.createBooking.execute({
         accommodationId,
-        checkIn: new Date(checkIn),
-        checkOut: new Date(checkOut),
+        checkIn: new Date(checkIn + "T00:00:00"),
+        checkOut: new Date(checkOut + "T00:00:00"),
         userId: user.id,
       });
       reply.status(201);

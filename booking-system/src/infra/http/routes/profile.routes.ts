@@ -40,9 +40,7 @@ export async function registerProfileRoutes(
     },
     async (request) => {
       const user = request.user as { id: string };
-      console.log("[GET /auth/me] entry userId:", user.id);
       const result = await deps.getCurrentUser.execute({ userId: user.id });
-      console.log("[GET /auth/me] exit OK");
       return result;
     },
   );

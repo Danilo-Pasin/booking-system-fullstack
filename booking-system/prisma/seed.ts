@@ -164,7 +164,7 @@ async function main() {
   console.log(`Seed completed:`);
   console.log(`  Users: ${[anna, carlos, guest1, guest2].map(u => u.email).join(", ")}`);
   console.log(`  Accommodations: ${count}`);
-  console.log(`  Password for all: ${PASSWORD}`);
+
 }
 
 main().catch((e) => {

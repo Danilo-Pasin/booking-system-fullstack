@@ -4,5 +4,7 @@ export function calcDays(checkIn: Date, checkOut: Date): number {
   if (checkOut.getTime() <= checkIn.getTime()) {
     throw new InvalidDateRangeError();
   }
-  return Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+  const diff = checkOut.getTime() - checkIn.getTime();
+  const msPerDay = 1000 * 60 * 60 * 24;
+  return Math.round(diff / msPerDay);
 }

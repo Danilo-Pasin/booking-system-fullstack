@@ -38,7 +38,7 @@ export default function EditProfilePage() {
       .catch(() => {
         router.push("/");
       });
-  }, [user, token, isLoading]);
+  }, [user, token, isLoading, router]);
 
   function validateField(field: string, value: string): string | null {
     switch (field) {
