@@ -9,12 +9,12 @@ const benefits = [
   {
     icon: Receipt,
     title: "Preços transparentes",
-    description: "Breakdown completo de taxas e descontos",
+    description: "Detalhamento completo de taxas e descontos",
   },
   {
     icon: Percent,
     title: "Desconto progressivo",
-    description: "10% off em estadias com mais de 7 dias",
+    description: "10% de desconto em estadias com mais de 7 dias",
   },
 ];
 

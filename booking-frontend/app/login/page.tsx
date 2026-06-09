@@ -40,7 +40,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const data = await login(email, password);
-      signIn(data.token, data.user);
+      signIn(data.user);
       toast.success("Login realizado com sucesso!");
       router.push("/");
     } catch (err: unknown) {

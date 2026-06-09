@@ -24,6 +24,7 @@ model User {
   createdAt      DateTime        @default(now())
   bookings       Booking[]
   accommodations Accommodation[]
+  images         Image[]
 }
 
 model Accommodation {
@@ -42,14 +43,18 @@ model Accommodation {
 }
 
 model Image {
-  id              String        @id @default(uuid())
+  id              String         @id @default(uuid())
   url             String
-  order           Int           @default(0)
-  accommodationId String
-  accommodation   Accommodation @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
-  createdAt       DateTime      @default(now())
+  order           Int            @default(0)
+  isPrimary       Boolean        @default(false)
+  accommodationId String?
+  accommodation   Accommodation? @relation(fields: [accommodationId], references: [id], onDelete: Cascade)
+  userId          String?
+  user            User?          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt       DateTime       @default(now())
 
   @@index([accommodationId])
+  @@index([userId])
 }
 
 enum BookingStatus {

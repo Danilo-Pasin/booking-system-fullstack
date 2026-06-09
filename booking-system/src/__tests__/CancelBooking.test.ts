@@ -4,10 +4,12 @@ import { InMemoryBookingRepository } from "../infra/repositories/InMemoryBooking
 import { Booking } from "../domain/entities/Booking";
 import { House } from "../domain/entities/House";
 import { BookingNotFoundError, ForbiddenError, ValidationError } from "../domain/errors/DomainError";
+import { EventDispatcher } from "../application/events/EventDispatcher";
 
 describe("CancelBooking", () => {
   const repo = new InMemoryBookingRepository();
-  const useCase = new CancelBooking(repo);
+  const eventDispatcher = new EventDispatcher();
+  const useCase = new CancelBooking(repo, eventDispatcher);
   let booking: Booking;
 
   beforeEach(async () => {

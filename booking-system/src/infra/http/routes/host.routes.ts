@@ -43,11 +43,11 @@ export async function registerHostRoutes(
       preHandler: [authenticate, requireHost(deps.userRepository)],
       schema: {
         tags: ["Host"],
-        summary: "Get host dashboard metrics",
+        summary: "Obter métricas do dashboard do anfitrião",
         security: [{ bearerAuth: [] }],
         response: {
           200: {
-            description: "Host dashboard data",
+            description: "Dados do dashboard do anfitrião",
             type: "object",
             properties: {
               accommodationsCount: { type: "number" },
@@ -74,11 +74,11 @@ export async function registerHostRoutes(
       preHandler: [authenticate, requireHost(deps.userRepository)],
       schema: {
         tags: ["Host"],
-        summary: "List all bookings for host's accommodations",
+        summary: "Listar todas as reservas das acomodações do anfitrião",
         security: [{ bearerAuth: [] }],
         response: {
           200: {
-            description: "List of host bookings",
+            description: "Lista de reservas do anfitrião",
             type: "array",
             items: bookingSummaryProps,
           },

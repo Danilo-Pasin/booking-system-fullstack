@@ -9,7 +9,7 @@ export interface BookingRepository {
   hasConflict(accommodationId: string, checkIn: Date, checkOut: Date, excludeBookingId?: string): Promise<boolean>;
   findByUserId(userId: string, statuses?: BookingStatus[]): Promise<BookingSummary[]>;
   findByAccommodationOwnerId(ownerId: string): Promise<BookingSummary[]>;
-  updateStatus(id: string, status: BookingStatus): Promise<BookingSummary>;
+  updateStatus(id: string, status: BookingStatus, expectedStatus?: BookingStatus): Promise<BookingSummary>;
 }
 
 export interface BookingSummary {

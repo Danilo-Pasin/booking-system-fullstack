@@ -12,7 +12,7 @@ export class GetCurrentUser {
   async execute(input: GetCurrentUserInput) {
     const user = await this.userRepository.findById(input.userId);
     if (!user) {
-      throw new NotFoundError("User not found");
+      throw new NotFoundError("Usuário não encontrado");
     }
     return toUserResponse(user);
   }

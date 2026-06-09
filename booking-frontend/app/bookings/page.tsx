@@ -44,7 +44,7 @@ function BookingSkeleton() {
 }
 
 export default function BookingsPage() {
-  const { token, isLoading } = useAuth();
+  const { user: authUser, isLoading } = useAuth();
   const [allBookings, setAllBookings] = useState<BookingWithMeta[]>([]);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -52,12 +52,12 @@ export default function BookingsPage() {
   const [confirmId, setConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isLoading || !token) return;
-    fetchBookings(token)
+    if (isLoading || !authUser) return;
+    fetchBookings()
       .then((data) => setAllBookings(data))
       .catch((err: unknown) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
-  }, [isLoading, token]);
+  }, [isLoading, authUser]);
 
   const activeBookings = allBookings.filter(
     (b) => b.status === "PENDING" || b.status === "APPROVED",
@@ -67,7 +67,7 @@ export default function BookingsPage() {
   );
 
   async function handleCancel(id: string) {
-    if (!token) return;
+    if (!authUser) return;
     setCancelling(id);
     setConfirmId(null);
 
@@ -77,7 +77,7 @@ export default function BookingsPage() {
     );
 
     try {
-      await cancelBooking(id, token);
+      await cancelBooking(id);
       toast.success("Reserva cancelada com sucesso!");
     } catch (err: unknown) {
       setAllBookings(previous);
@@ -262,5 +262,5 @@ function BookingCard({
 }
 
 function isCancellable(status?: string) {
-  return status === "PENDING";
+  return status === "PENDING" || status === "APPROVED";
 }

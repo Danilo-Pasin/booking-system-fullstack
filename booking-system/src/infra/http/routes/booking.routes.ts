@@ -7,6 +7,7 @@ import type { CancelBooking } from "../../../application/use-cases/CancelBooking
 import type { ListUserBookings } from "../../../application/use-cases/ListUserBookings";
 import type { GetBookingById } from "../../../application/use-cases/GetBookingById";
 import type { UpdateBookingStatus } from "../../../application/use-cases/UpdateBookingStatus";
+import type { HostCancelBooking } from "../../../application/use-cases/HostCancelBooking";
 import type { UserRepository } from "../../../domain/repositories/UserRepository";
 
 export async function registerBookingRoutes(
@@ -18,6 +19,7 @@ export async function registerBookingRoutes(
     listUserBookings: ListUserBookings;
     getBookingById: GetBookingById;
     updateBookingStatus?: UpdateBookingStatus;
+    hostCancelBooking?: HostCancelBooking;
     userRepository?: UserRepository;
   },
 ) {
@@ -27,7 +29,7 @@ export async function registerBookingRoutes(
       preHandler: [validate(bookingSchema)],
       schema: {
         tags: ["Bookings"],
-        summary: "Preview booking price",
+        summary: "Visualizar preço da reserva",
         body: {
           type: "object",
           required: ["accommodationId", "checkIn", "checkOut"],
@@ -39,9 +41,10 @@ export async function registerBookingRoutes(
         },
         response: {
           200: {
-            description: "Price breakdown",
+             description: "Detalhamento de preços",
             type: "object",
             properties: {
+              days: { type: "integer" },
               base: { type: "number" },
               fees: {
                 type: "array",
@@ -67,8 +70,8 @@ export async function registerBookingRoutes(
       };
       const breakdown = await deps.previewPrice.execute({
         accommodationId,
-        checkIn: new Date(checkIn + "T00:00:00"),
-        checkOut: new Date(checkOut + "T00:00:00"),
+        checkIn: new Date(checkIn),
+        checkOut: new Date(checkOut),
       });
       return breakdown;
     },
@@ -86,7 +89,7 @@ export async function registerBookingRoutes(
       preHandler: [validate(bookingSchema), authenticate],
       schema: {
         tags: ["Bookings"],
-        summary: "Create a booking",
+        summary: "Criar uma reserva",
         security: [{ bearerAuth: [] }],
         body: {
           type: "object",
@@ -99,7 +102,7 @@ export async function registerBookingRoutes(
         },
         response: {
           201: {
-            description: "Booking created",
+             description: "Reserva criada",
             type: "object",
             properties: {
               id: { type: "string" },
@@ -130,8 +133,8 @@ export async function registerBookingRoutes(
       };
       const booking = await deps.createBooking.execute({
         accommodationId,
-        checkIn: new Date(checkIn + "T00:00:00"),
-        checkOut: new Date(checkOut + "T00:00:00"),
+        checkIn: new Date(checkIn),
+        checkOut: new Date(checkOut),
         userId: user.id,
       });
       reply.status(201);
@@ -157,20 +160,20 @@ export async function registerBookingRoutes(
       preHandler: authenticate,
       schema: {
         tags: ["Bookings"],
-        summary: "List user bookings",
+        summary: "Listar reservas do usuário",
         security: [{ bearerAuth: [] }],
         querystring: {
           type: "object",
           properties: {
             status: {
               type: "string",
-              description: "Comma-separated statuses to filter (e.g. PENDING,APPROVED)",
+              description: "Status separados por vírgula para filtrar (ex: PENDING,APPROVED)",
             },
           },
         },
         response: {
           200: {
-            description: "User bookings",
+             description: "Reservas do usuário",
             type: "array",
             items: {
               type: "object",
@@ -238,7 +241,7 @@ export async function registerBookingRoutes(
       preHandler: authenticate,
       schema: {
         tags: ["Bookings"],
-        summary: "Get booking by ID",
+        summary: "Obter reserva por ID",
         security: [{ bearerAuth: [] }],
         params: {
           type: "object",
@@ -247,7 +250,7 @@ export async function registerBookingRoutes(
         },
         response: {
           200: {
-            description: "Booking details",
+             description: "Detalhes da reserva",
             type: "object",
             properties: {
               id: { type: "string" },
@@ -268,22 +271,22 @@ export async function registerBookingRoutes(
             },
           },
           404: {
-            description: "Not found",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-          403: {
-            description: "Forbidden",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-        },
-      },
-    },
-    async (request) => {
-      const { id } = request.params as { id: string };
-      const user = request.user as { id: string };
-      return deps.getBookingById.execute({ bookingId: id, userId: user.id });
+             description: "Não encontrada",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+           403: {
+             description: "Proibido",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+         },
+       },
+     },
+     async (request) => {
+       const { id } = request.params as { id: string };
+       const user = request.user as { id: string };
+       return deps.getBookingById.execute({ bookingId: id, userId: user.id });
     },
   );
 
@@ -293,7 +296,7 @@ export async function registerBookingRoutes(
       preHandler: authenticate,
       schema: {
         tags: ["Bookings"],
-        summary: "Cancel a booking",
+        summary: "Cancelar uma reserva",
         security: [{ bearerAuth: [] }],
         params: {
           type: "object",
@@ -302,7 +305,7 @@ export async function registerBookingRoutes(
         },
         response: {
           200: {
-            description: "Booking cancelled",
+             description: "Reserva cancelada",
             type: "object",
             properties: {
               id: { type: "string" },
@@ -323,22 +326,22 @@ export async function registerBookingRoutes(
             },
           },
           404: {
-            description: "Not found",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-          403: {
-            description: "Forbidden",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-        },
-      },
-    },
-    async (request) => {
-      const { id } = request.params as { id: string };
-      const user = request.user as { id: string };
-      return deps.cancelBooking.execute({ id, userId: user.id });
+             description: "Não encontrada",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+           403: {
+             description: "Proibido",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+         },
+       },
+     },
+     async (request) => {
+       const { id } = request.params as { id: string };
+       const user = request.user as { id: string };
+       return deps.cancelBooking.execute({ id, userId: user.id });
     },
   );
 
@@ -349,7 +352,7 @@ export async function registerBookingRoutes(
         preHandler: [authenticate, requireHost(deps.userRepository)],
         schema: {
           tags: ["Bookings"],
-          summary: "Approve or reject a booking (host only)",
+          summary: "Aprovar ou rejeitar reserva (apenas host)",
           security: [{ bearerAuth: [] }],
           params: {
             type: "object",
@@ -365,7 +368,7 @@ export async function registerBookingRoutes(
           },
           response: {
             200: {
-              description: "Booking status updated",
+               description: "Status da reserva atualizado",
               type: "object",
               properties: {
                 id: { type: "string" },
@@ -393,6 +396,53 @@ export async function registerBookingRoutes(
         const { status } = request.body as { status: string };
         const user = request.user as { id: string };
         return deps.updateBookingStatus!.execute({ bookingId: id, status, userId: user.id });
+      },
+    );
+  }
+
+  if (deps.hostCancelBooking && deps.userRepository) {
+    app.patch(
+      "/bookings/:id/cancel",
+      {
+        preHandler: [authenticate, requireHost(deps.userRepository)],
+        schema: {
+          tags: ["Bookings"],
+          summary: "Cancelar reserva (apenas host)",
+          security: [{ bearerAuth: [] }],
+          params: {
+            type: "object",
+            required: ["id"],
+            properties: { id: { type: "string" } },
+          },
+          response: {
+            200: {
+               description: "Reserva cancelada",
+              type: "object",
+              properties: {
+                id: { type: "string" },
+                status: { type: "string" },
+                checkIn: { type: "string", format: "date-time" },
+                checkOut: { type: "string", format: "date-time" },
+                basePrice: { type: "number" },
+                totalPrice: { type: "number" },
+                userId: { type: "string" },
+                accommodation: {
+                  type: "object",
+                  properties: {
+                    id: { type: "string" },
+                    name: { type: "string" },
+                    type: { type: "string" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      async (request) => {
+        const { id } = request.params as { id: string };
+        const user = request.user as { id: string };
+        return deps.hostCancelBooking!.execute({ bookingId: id, userId: user.id });
       },
     );
   }

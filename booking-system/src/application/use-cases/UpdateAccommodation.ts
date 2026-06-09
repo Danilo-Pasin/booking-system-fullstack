@@ -29,33 +29,35 @@ export class UpdateAccommodation {
     const updatedPrice = input.pricePerNight ?? existing.pricePerNight;
 
     if (updatedPrice <= 0) {
-      throw new ValidationError("pricePerNight must be a positive number");
+      throw new ValidationError("O preço por noite deve ser um número positivo");
     }
 
     const updatedName = input.name ?? existing.name;
-    const existingAny = existing as any;
 
     let images = existing.images;
     if (input.images !== undefined) {
       if (input.images.length > 10) {
-        throw new ValidationError("Maximum of 10 images allowed");
+        throw new ValidationError("Máximo de 10 imagens permitidas");
       }
       images = input.images.map((url, i) => ({
         id: randomUUID(),
         url,
         order: i,
+        isPrimary: i === 0,
       }));
     }
 
     const imageUrl = input.imageUrl !== undefined
       ? input.imageUrl
-      : (images && images.length > 0 ? images[0].url : existingAny.imageUrl);
+      : (input.images !== undefined
+        ? (images && images.length > 0 ? images[0].url : null)
+        : existing.imageUrl);
 
     const updated: Accommodation = Object.assign(Object.create(Object.getPrototypeOf(existing)), {
-      ...existingAny,
+      ...(existing as any),
       name: updatedName,
       pricePerNight: updatedPrice,
-      description: input.description !== undefined ? input.description : existingAny.description,
+      description: input.description !== undefined ? input.description : existing.description,
       imageUrl,
       images,
     });

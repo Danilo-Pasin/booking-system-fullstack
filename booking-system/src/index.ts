@@ -17,9 +17,10 @@ import { CreateAccommodation } from "./application/use-cases/CreateAccommodation
 import { UpdateAccommodation } from "./application/use-cases/UpdateAccommodation";
 import { DeleteAccommodation } from "./application/use-cases/DeleteAccommodation";
 import { EventDispatcher } from "./application/events/EventDispatcher";
-import { ReservationEmailHandler } from "./application/events/ReservationEmailHandler";
 import { ReservationMetricsHandler } from "./application/events/ReservationMetricsHandler";
+import { BcryptHasher } from "./infra/crypto/BcryptHasher";
 import { randomUUID } from "crypto";
+import { formatCurrency } from "./lib/currency";
 
 // ──────────────────────────────────────────────
 // Helper functions
@@ -42,7 +43,8 @@ function separator(label: string) {
 async function main() {
   const repo = new PrismaAccommodationRepository();
   const userRepo = new PrismaUserRepository();
-  const registerUser = new RegisterUser(userRepo);
+  const passwordHasher = new BcryptHasher();
+  const registerUser = new RegisterUser(userRepo, passwordHasher);
 
   // Create a default host for seed accommodations
   const hostUser = await registerUser.execute({
@@ -88,7 +90,7 @@ async function main() {
     pricePerNight: 450,
     ownerId: hostUser.id,
   });
-  console.log(`  Updated: ${updated.name} ($${updated.pricePerNight}/night)`);
+  console.log(`  Updated: ${updated.name} (${formatCurrency(updated.pricePerNight)}/noite)`);
 
   // Demo: DeleteAccommodation use case
   separator("HOST — Delete Accommodation");
@@ -101,7 +103,6 @@ async function main() {
   const pricingService = new PricingService(standardFees);
 
   const eventDispatcher = new EventDispatcher();
-  eventDispatcher.register("booking.created", new ReservationEmailHandler());
   eventDispatcher.register("booking.created", new ReservationMetricsHandler());
 
   const createBooking = new CreateBooking(repo, pricingService, bookingRepo, eventDispatcher);
@@ -114,11 +115,11 @@ async function main() {
     checkIn: futureDate(5),
     checkOut: futureDate(10),
   });
-  console.log(`  Base price : $${preview.base.toFixed(2)}`);
+  console.log(`  Preço base : ${formatCurrency(preview.base)}`);
   preview.fees.forEach((f) =>
-    console.log(`  ${f.name.padEnd(16)}: $${f.amount.toFixed(2)}`)
+    console.log(`  ${f.name.padEnd(20)}: ${formatCurrency(f.amount)}`)
   );
-  console.log(`  ${"TOTAL".padEnd(16)}: $${preview.total.toFixed(2)}`);
+  console.log(`  ${"TOTAL".padEnd(20)}: ${formatCurrency(preview.total)}`);
 
   // Example 2 — Create booking for Apartment (3 nights)
   separator("BOOKING — Apartment (3 nights)");

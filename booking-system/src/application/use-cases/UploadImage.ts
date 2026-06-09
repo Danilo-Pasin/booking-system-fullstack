@@ -62,13 +62,13 @@ export class UploadImage {
     const detected = detectMimeFromBuffer(input.file);
     if (!detected || !ALLOWED_MIME_TYPES.includes(detected)) {
       throw new ValidationError(
-        `Invalid file type. Allowed: JPEG, PNG, WebP`,
+        `Tipo de arquivo inválido. Permitidos: JPEG, PNG, WebP`,
       );
     }
 
     if (input.file.length > MAX_SIZE) {
       throw new ValidationError(
-        `File too large. Maximum is 5MB (received ${(input.file.length / 1024 / 1024).toFixed(2)}MB).`,
+        `Arquivo muito grande. O máximo é 5MB (recebido ${(input.file.length / 1024 / 1024).toFixed(2)}MB).`,
       );
     }
 

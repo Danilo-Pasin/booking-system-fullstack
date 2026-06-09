@@ -3,7 +3,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
-import { fetchMyAccommodations, deleteAccommodation, fetchHostDashboard, fetchHostBookings, updateBookingStatus } from "@/lib/api";
+import { fetchMyAccommodations, deleteAccommodation, fetchHostDashboard, fetchHostBookings, updateBookingStatus, hostCancelBooking } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import MetricCard from "@/components/MetricCard";
@@ -36,7 +36,7 @@ function StatusBadge({ status }: { status: string }) {
 
 export default function HostPage() {
   const router = useRouter();
-  const { user, token, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const [accommodations, setAccommodations] = useState<Accommodation[]>([]);
   const [bookings, setBookings] = useState<HostBooking[]>([]);
   const [dashboard, setDashboard] = useState<{ accommodationsCount: number; bookingsCount: number; estimatedRevenue: number } | null>(null);
@@ -46,14 +46,15 @@ export default function HostPage() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [confirmId, setConfirmId] = useState<string | null>(null);
   const [processingStatus, setProcessingStatus] = useState<string | null>(null);
+  const [cancellingHostId, setCancellingHostId] = useState<string | null>(null);
+  const [cancelConfirmId, setCancelConfirmId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    if (!token) return;
     try {
       const [accData, dashData, hostBookings] = await Promise.all([
-        fetchMyAccommodations(token),
-        fetchHostDashboard(token),
-        fetchHostBookings(token),
+        fetchMyAccommodations(),
+        fetchHostDashboard(),
+        fetchHostBookings(),
       ]);
       setAccommodations(accData);
       setDashboard({ accommodationsCount: dashData.accommodationsCount, bookingsCount: dashData.bookingsCount, estimatedRevenue: dashData.estimatedRevenue });
@@ -64,16 +65,15 @@ export default function HostPage() {
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     if (isLoading) return;
     if (!user || user.role !== "HOST") { router.push("/"); return; }
-    if (!token) return;
     Promise.all([
-      fetchMyAccommodations(token),
-      fetchHostDashboard(token),
-      fetchHostBookings(token),
+      fetchMyAccommodations(),
+      fetchHostDashboard(),
+      fetchHostBookings(),
     ])
       .then(([accData, dashData, hostBookings]) => {
         setAccommodations(accData);
@@ -87,13 +87,12 @@ export default function HostPage() {
       })
       .catch((err: unknown) => setError(getErrorMessage(err)))
       .finally(() => setLoading(false));
-  }, [user, token, isLoading, router]);
+  }, [user, isLoading, router]);
 
   async function handleDelete(id: string) {
-    if (!token) return;
     setDeleting(id);
     try {
-      await deleteAccommodation(id, token);
+      await deleteAccommodation(id);
       toast.success("Acomodação excluída!");
       setConfirmId(null);
       await load();
@@ -105,10 +104,9 @@ export default function HostPage() {
   }
 
   async function handleApprove(bookingId: string) {
-    if (!token) return;
     setProcessingStatus(bookingId);
     try {
-      await updateBookingStatus(bookingId, "APPROVED", token);
+      await updateBookingStatus(bookingId, "APPROVED");
       toast.success("Reserva aprovada!");
       await load();
     } catch (err: unknown) {
@@ -118,11 +116,24 @@ export default function HostPage() {
     }
   }
 
+  async function handleHostCancel(bookingId: string) {
+    setCancellingHostId(bookingId);
+    setCancelConfirmId(null);
+    try {
+      await hostCancelBooking(bookingId);
+      toast.success("Reserva cancelada.");
+      await load();
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setCancellingHostId(null);
+    }
+  }
+
   async function handleReject(bookingId: string) {
-    if (!token) return;
     setProcessingStatus(bookingId);
     try {
-      await updateBookingStatus(bookingId, "REJECTED", token);
+      await updateBookingStatus(bookingId, "REJECTED");
       toast.success("Reserva recusada.");
       await load();
     } catch (err: unknown) {
@@ -274,6 +285,18 @@ export default function HostPage() {
                       <span>Saída: <strong>{new Date(b.checkOut).toLocaleDateString("pt-BR")}</strong></span>
                     </div>
                   </div>
+                  {b.status === "APPROVED" && (
+                    <div className="flex justify-end mt-3 pt-3 border-t">
+                      <Button
+                        onClick={() => setCancelConfirmId(b.id)}
+                        disabled={cancellingHostId === b.id}
+                        variant="destructive"
+                        size="sm"
+                      >
+                        {cancellingHostId === b.id ? "Cancelando..." : "Cancelar reserva"}
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -367,6 +390,18 @@ export default function HostPage() {
           variant="danger"
           onConfirm={() => confirmId && handleDelete(confirmId)}
           onCancel={() => setConfirmId(null)}
+        />
+
+        <ConfirmModal
+          open={cancelConfirmId !== null}
+          title="Cancelar reserva"
+          message="Tem certeza que deseja cancelar esta reserva? Esta ação não pode ser desfeita."
+          confirmLabel={cancellingHostId === cancelConfirmId ? "Cancelando..." : "Sim, cancelar reserva"}
+          cancelLabel="Manter reserva"
+          loading={cancellingHostId === cancelConfirmId}
+          variant="danger"
+          onConfirm={() => cancelConfirmId && handleHostCancel(cancelConfirmId)}
+          onCancel={() => setCancelConfirmId(null)}
         />
       </main>
     </ProtectedRoute>

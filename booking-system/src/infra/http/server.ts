@@ -9,6 +9,7 @@ import rateLimit from "@fastify/rate-limit";
 import multipart from "@fastify/multipart";
 import helmet from "@fastify/helmet";
 import { CloudinaryStorage } from "../storage/CloudinaryStorage";
+import { BcryptHasher } from "../crypto/BcryptHasher";
 import { UploadImage } from "../../application/use-cases/UploadImage";
 import { PrismaAccommodationRepository } from "../repositories/PrismaAccommodationRepository";
 import { PrismaBookingRepository } from "../repositories/PrismaBookingRepository";
@@ -28,6 +29,7 @@ import { GetAccommodationById } from "../../application/use-cases/GetAccommodati
 import { ListAccommodations } from "../../application/use-cases/ListAccommodations";
 import { ListMyAccommodations } from "../../application/use-cases/ListMyAccommodations";
 import { CancelBooking } from "../../application/use-cases/CancelBooking";
+import { HostCancelBooking } from "../../application/use-cases/HostCancelBooking";
 import { ListUserBookings } from "../../application/use-cases/ListUserBookings";
 import { GetBookingById } from "../../application/use-cases/GetBookingById";
 import { UpdateBookingStatus } from "../../application/use-cases/UpdateBookingStatus";
@@ -44,6 +46,7 @@ import {
   ValidationError,
 } from "../../domain/errors/DomainError";
 import { EventDispatcher } from "../../application/events/EventDispatcher";
+import { MailService } from "../mail/MailService";
 import { ReservationEmailHandler } from "../../application/events/ReservationEmailHandler";
 import { ReservationMetricsHandler } from "../../application/events/ReservationMetricsHandler";
 import { registerAuthRoutes } from "./routes/auth.routes";
@@ -81,12 +84,12 @@ await app.register(helmet);
 await app.register(fastifySwagger, {
   openapi: {
     info: {
-      title: "Booking System API",
+      title: "Sistema de Reservas API",
       description:
-        "Fullstack booking system — Academic project demonstrating Clean Architecture, SOLID principles, and OOP design patterns.",
+        "Sistema de reservas fullstack — Projeto acadêmico demonstrando Clean Architecture, princípios SOLID e padrões de design OOP.",
       version: "1.0.1",
     },
-    servers: [{ url: "http://localhost:3001", description: "Development" }],
+    servers: [{ url: "http://localhost:3001", description: "Desenvolvimento" }],
     components: {
       securitySchemes: {
         bearerAuth: {
@@ -149,28 +152,34 @@ const pricingService = new PricingService([
   new LongStayDiscount(),
 ]);
 
+const mailService = new MailService();
+await mailService.initialize();
+
 const eventDispatcher = new EventDispatcher();
-eventDispatcher.register("booking.created", new ReservationEmailHandler());
+eventDispatcher.register("booking.created", new ReservationEmailHandler(mailService, userRepo));
+eventDispatcher.register("booking.status_changed", new ReservationEmailHandler(mailService, userRepo));
 eventDispatcher.register("booking.created", new ReservationMetricsHandler());
 
-const registerUser = new RegisterUser(userRepo);
-const loginUser = new LoginUser(userRepo);
+const passwordHasher = new BcryptHasher();
+const registerUser = new RegisterUser(userRepo, passwordHasher);
+const loginUser = new LoginUser(userRepo, passwordHasher);
 const createAccommodation = new CreateAccommodation(accommodationRepo);
 const updateAccommodation = new UpdateAccommodation(accommodationRepo);
 const deleteAccommodation = new DeleteAccommodation(accommodationRepo);
 const getCurrentUser = new GetCurrentUser(userRepo);
-const updateProfile = new UpdateProfile(userRepo);
+const updateProfile = new UpdateProfile(userRepo, passwordHasher);
 const getPublicProfile = new GetPublicProfile(userRepo, accommodationRepo);
 const getAccommodationById = new GetAccommodationById(accommodationRepo);
 const listAccommodations = new ListAccommodations(accommodationRepo);
 const listMyAccommodations = new ListMyAccommodations(accommodationRepo);
 const createBooking = new CreateBooking(accommodationRepo, pricingService, bookingRepo, eventDispatcher);
 const previewPrice = new PreviewBookingPrice(accommodationRepo, pricingService);
-const cancelBooking = new CancelBooking(bookingRepo);
+const cancelBooking = new CancelBooking(bookingRepo, eventDispatcher);
+const hostCancelBooking = new HostCancelBooking(bookingRepo, eventDispatcher);
 const listUserBookings = new ListUserBookings(bookingRepo);
 const getBookingById = new GetBookingById(bookingRepo);
 const upgradeToHost = new UpgradeToHost(userRepo);
-const updateBookingStatus = new UpdateBookingStatus(bookingRepo);
+const updateBookingStatus = new UpdateBookingStatus(bookingRepo, eventDispatcher);
 const getHostDashboard = new GetHostDashboard(accommodationRepo, bookingRepo);
 const listHostBookings = new ListHostBookings(bookingRepo);
 const cloudinaryStorage = new CloudinaryStorage();
@@ -197,6 +206,7 @@ await registerBookingRoutes(app, {
   listUserBookings,
   getBookingById,
   updateBookingStatus,
+  hostCancelBooking,
   userRepository: userRepo,
 });
 
@@ -237,7 +247,7 @@ app.setErrorHandler((error, _request, reply) => {
   console.error("Message:", err.message);
   console.error("Stack:", err.stack);
   if (err.code) console.error("Code:", err.code);
-  reply.status(500).send({ error: "Internal server error" });
+  reply.status(500).send({ error: "Erro interno do servidor" });
 });
 
 // ──────────────────────────────────────────────

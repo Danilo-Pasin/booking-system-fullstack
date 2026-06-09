@@ -11,7 +11,7 @@ export class UpgradeToHost {
 
   async execute(input: UpgradeToHostInput) {
     const user = await this.userRepository.findById(input.userId);
-    if (!user) throw new NotFoundError("User not found");
+    if (!user) throw new NotFoundError("Usuário não encontrado");
 
     if (user.role === "HOST") {
       throw new AlreadyHostError();

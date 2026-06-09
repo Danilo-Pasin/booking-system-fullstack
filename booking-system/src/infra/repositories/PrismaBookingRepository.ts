@@ -130,10 +130,11 @@ export class PrismaBookingRepository implements BookingRepository {
     await prisma.booking.delete({ where: { id } });
   }
 
-  async updateStatus(id: string, status: BookingStatus): Promise<BookingSummary> {
+  async updateStatus(id: string, status: BookingStatus, expectedStatus?: BookingStatus): Promise<BookingSummary> {
     try {
+      const where = expectedStatus ? { id, status: expectedStatus } : { id };
       const booking = await prisma.booking.update({
-        where: { id, status: "PENDING" },
+        where,
         data: { status: status as any },
         include: { accommodation: true, user: { select: { name: true, email: true } } },
       });

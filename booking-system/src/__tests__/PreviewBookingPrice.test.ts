@@ -14,8 +14,9 @@ describe("PreviewBookingPrice", () => {
     mockAccommodationRepo = { findById: vi.fn().mockResolvedValue(mockHouse) };
     mockPricingService = {
       calculate: vi.fn().mockReturnValue({
+        days: 3,
         base: 1080,
-        fees: [{ name: "Platform Fee", amount: 63.18 }],
+        fees: [{ name: "Taxa da Plataforma", amount: 63.18 }],
         total: 1143.18,
       }),
     };

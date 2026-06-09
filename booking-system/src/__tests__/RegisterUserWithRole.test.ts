@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { RegisterUser } from "../application/use-cases/RegisterUser";
 import { InMemoryAccommodationRepository } from "../infra/repositories/InMemoryAccommodationRepository";
 import { ValidationError, EmailAlreadyInUseError } from "../domain/errors/DomainError";
+import { MockPasswordHasher } from "./MockPasswordHasher";
 
 class InMemoryUserRepository {
   private users: any[] = [];
@@ -11,9 +12,11 @@ class InMemoryUserRepository {
   async findById(id: string) { return this.users.find(u => u.id === id) ?? null; }
 }
 
+const hasher = new MockPasswordHasher();
+
 describe("RegisterUser with role", () => {
   const repo = new InMemoryUserRepository() as any;
-  const useCase = new RegisterUser(repo);
+  const useCase = new RegisterUser(repo, hasher);
 
   it("defaults role to GUEST", async () => {
     const result = await useCase.execute({

@@ -47,7 +47,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       const data = await apiRegister(name, email, password);
-      login(data.token, data.user);
+      login(data.user);
       toast.success("Conta criada com sucesso!");
       router.push("/");
     } catch (err: unknown) {

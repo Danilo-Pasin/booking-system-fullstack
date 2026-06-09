@@ -18,6 +18,7 @@ export class GetAccommodationById {
       pricePerNight: accommodation.pricePerNight,
       type: accommodation.type,
       imageUrl: accommodation.imageUrl,
+      images: accommodation.images,
       description: accommodation.description,
       ownerId: accommodation.ownerId,
     };

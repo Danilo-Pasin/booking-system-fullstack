@@ -14,7 +14,7 @@ export class GetPublicProfile {
 
   async execute(input: GetPublicProfileInput) {
     const user = await this.userRepository.findById(input.userId);
-    if (!user) throw new NotFoundError("User not found");
+    if (!user) throw new NotFoundError("Usuário não encontrado");
 
     const accommodations = await this.accommodationRepository.findByOwnerId(input.userId);
 
@@ -24,6 +24,7 @@ export class GetPublicProfile {
       role: user.role,
       avatarUrl: user.avatarUrl ?? null,
       bio: user.bio ?? null,
+      images: user.images ?? [],
       accommodationCount: accommodations.length,
       createdAt: user.createdAt,
     };

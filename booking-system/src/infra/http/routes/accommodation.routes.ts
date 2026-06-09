@@ -25,7 +25,7 @@ export async function registerAccommodationRoutes(
   app.get("/accommodations", {
     schema: {
       tags: ["Accommodations"],
-      summary: "List all accommodations",
+      summary: "Listar todas as acomodações",
       querystring: {
         type: "object",
         properties: {
@@ -36,7 +36,7 @@ export async function registerAccommodationRoutes(
       },
       response: {
         200: {
-          description: "List of accommodations",
+           description: "Lista de acomodações",
           type: "array",
           items: accommodationResponseSchema,
         },
@@ -66,7 +66,7 @@ export async function registerAccommodationRoutes(
     {
       schema: {
         tags: ["Accommodations"],
-        summary: "Get accommodation by ID",
+        summary: "Obter acomodação por ID",
         params: {
           type: "object",
           required: ["id"],
@@ -74,24 +74,24 @@ export async function registerAccommodationRoutes(
         },
         response: {
           200: {
-            description: "Accommodation details",
+             description: "Detalhes da acomodação",
             ...accommodationResponseSchema,
           },
           404: {
-            description: "Not found",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
-      const { id } = request.params as { id: string };
-      return deps.getAccommodationById.execute({ id });
-    },
-  );
+             description: "Não encontrada",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+         },
+       },
+     },
+     async (request, reply) => {
+       const { id } = request.params as { id: string };
+       return deps.getAccommodationById.execute({ id });
+     },
+   );
 
-  // Host only
+   // Host only
   app.post(
     "/accommodations",
     {
@@ -104,7 +104,7 @@ export async function registerAccommodationRoutes(
       preHandler: [authenticate, validate(createAccommodationSchema), requireHost(deps.userRepository)],
       schema: {
         tags: ["Accommodations (Host)"],
-        summary: "Create a new accommodation",
+        summary: "Criar uma nova acomodação",
         security: [{ bearerAuth: [] }],
         body: {
           type: "object",
@@ -120,7 +120,7 @@ export async function registerAccommodationRoutes(
         },
         response: {
           201: {
-            description: "Accommodation created",
+             description: "Acomodação criada",
             ...accommodationResponseSchema,
           },
         },
@@ -150,11 +150,11 @@ export async function registerAccommodationRoutes(
       preHandler: [authenticate, requireHost(deps.userRepository)],
       schema: {
         tags: ["Accommodations (Host)"],
-        summary: "List my accommodations",
+        summary: "Listar minhas acomodações",
         security: [{ bearerAuth: [] }],
         response: {
           200: {
-            description: "List of host's accommodations",
+             description: "Lista de acomodações do anfitrião",
             type: "array",
             items: accommodationResponseSchema,
           },
@@ -173,7 +173,7 @@ export async function registerAccommodationRoutes(
       preHandler: [authenticate, validate(updateAccommodationSchema), requireHost(deps.userRepository)],
       schema: {
         tags: ["Accommodations (Host)"],
-        summary: "Update an accommodation",
+        summary: "Atualizar uma acomodação",
         security: [{ bearerAuth: [] }],
         params: {
           type: "object",
@@ -192,79 +192,79 @@ export async function registerAccommodationRoutes(
         },
         response: {
           200: {
-            description: "Accommodation updated",
+             description: "Acomodação atualizada",
             ...accommodationResponseSchema,
           },
-          403: {
-            description: "Forbidden",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-          404: {
-            description: "Not found",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
-      const { id } = request.params as { id: string };
-      const user = request.user as { id: string };
-      const body = request.body as {
-        name?: string;
-        pricePerNight?: number;
-        description?: string;
-        imageUrl?: string;
-        images?: string[];
-      };
-      const updated = await deps.updateAccommodation.execute({
-        id, ownerId: user.id,
-        name: body.name,
-        pricePerNight: body.pricePerNight,
-        description: body.description,
-        imageUrl: body.imageUrl,
-        images: body.images,
-      });
-      return updated;
-    },
-  );
+           403: {
+             description: "Proibido",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+           404: {
+             description: "Não encontrada",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+         },
+       },
+     },
+     async (request, reply) => {
+       const { id } = request.params as { id: string };
+       const user = request.user as { id: string };
+       const body = request.body as {
+         name?: string;
+         pricePerNight?: number;
+         description?: string;
+         imageUrl?: string;
+         images?: string[];
+       };
+       const updated = await deps.updateAccommodation.execute({
+         id, ownerId: user.id,
+         name: body.name,
+         pricePerNight: body.pricePerNight,
+         description: body.description,
+         imageUrl: body.imageUrl,
+         images: body.images,
+       });
+       return updated;
+     },
+   );
 
-  app.delete(
-    "/accommodations/:id",
-    {
-      preHandler: [authenticate, requireHost(deps.userRepository)],
-      schema: {
-        tags: ["Accommodations (Host)"],
-        summary: "Delete an accommodation",
-        security: [{ bearerAuth: [] }],
-        params: {
-          type: "object",
-          required: ["id"],
-          properties: { id: { type: "string" } },
-        },
-        response: {
-          204: {
-            description: "Accommodation deleted, no content",
+   app.delete(
+     "/accommodations/:id",
+     {
+       preHandler: [authenticate, requireHost(deps.userRepository)],
+       schema: {
+         tags: ["Accommodations (Host)"],
+         summary: "Excluir uma acomodação",
+         security: [{ bearerAuth: [] }],
+         params: {
+           type: "object",
+           required: ["id"],
+           properties: { id: { type: "string" } },
+         },
+         response: {
+           204: {
+             description: "Acomodação excluída, sem conteúdo",
             type: "null",
           },
-          403: {
-            description: "Forbidden",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-          404: {
-            description: "Not found",
-            type: "object",
-            properties: { error: { type: "string" } },
-          },
-        },
-      },
-    },
-    async (request, reply) => {
-      const { id } = request.params as { id: string };
-      const user = request.user as { id: string };
-      await deps.deleteAccommodation.execute({ id, ownerId: user.id });
+           403: {
+             description: "Proibido",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+           404: {
+             description: "Não encontrada",
+             type: "object",
+             properties: { error: { type: "string" } },
+           },
+         },
+       },
+     },
+     async (request, reply) => {
+       const { id } = request.params as { id: string };
+       const user = request.user as { id: string };
+       await deps.deleteAccommodation.execute({ id, ownerId: user.id });
       reply.status(204);
     },
   );

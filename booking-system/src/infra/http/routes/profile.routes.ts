@@ -19,19 +19,23 @@ export async function registerProfileRoutes(
       preHandler: authenticate,
       schema: {
         tags: ["Auth"],
-        summary: "Get current user profile",
+        summary: "Obter perfil do usuário atual",
         security: [{ bearerAuth: [] }],
         response: {
           200: {
-            description: "Current user profile",
+            description: "Perfil do usuário atual",
             type: "object",
             properties: {
               id: { type: "string" },
               name: { type: "string" },
               email: { type: "string" },
               role: { type: "string", enum: ["GUEST", "HOST"] },
-              avatarUrl: { type: "string" },
-              bio: { type: "string" },
+              avatarUrl: { type: "string", nullable: true },
+              bio: { type: "string", nullable: true },
+              images: {
+                type: "array",
+                items: { type: "object", properties: { id: { type: "string" }, url: { type: "string" }, order: { type: "number" }, isPrimary: { type: "boolean" } } },
+              },
               createdAt: { type: "string", format: "date-time" },
             },
           },
@@ -51,29 +55,34 @@ export async function registerProfileRoutes(
       preHandler: [authenticate, validate(updateProfileSchema)],
       schema: {
         tags: ["Auth"],
-        summary: "Update current user profile",
+        summary: "Atualizar perfil do usuário atual",
         security: [{ bearerAuth: [] }],
         body: {
           type: "object",
           properties: {
             name: { type: "string", minLength: 2 },
-            avatarUrl: { type: "string" },
+            avatarUrl: { type: "string", nullable: true },
             bio: { type: "string", maxLength: 500 },
+            images: { type: "array", items: { type: "string" }, description: "Array de URLs de imagens" },
             currentPassword: { type: "string", description: "Obrigatória se newPassword for informada" },
             newPassword: { type: "string", minLength: 8, description: "Deve conter pelo menos uma letra e um número" },
           },
         },
         response: {
           200: {
-            description: "Updated user profile",
+            description: "Perfil do usuário atualizado",
             type: "object",
             properties: {
               id: { type: "string" },
               name: { type: "string" },
               email: { type: "string" },
               role: { type: "string", enum: ["GUEST", "HOST"] },
-              avatarUrl: { type: "string" },
-              bio: { type: "string" },
+              avatarUrl: { type: "string", nullable: true },
+              bio: { type: "string", nullable: true },
+              images: {
+                type: "array",
+                items: { type: "object", properties: { id: { type: "string" }, url: { type: "string" }, order: { type: "number" }, isPrimary: { type: "boolean" } } },
+              },
               createdAt: { type: "string", format: "date-time" },
             },
           },
@@ -82,14 +91,15 @@ export async function registerProfileRoutes(
     },
     async (request) => {
       const user = request.user as { id: string };
-      const { name, avatarUrl, bio, currentPassword, newPassword } = request.body as {
+      const { name, avatarUrl, bio, images, currentPassword, newPassword } = request.body as {
         name?: string;
         avatarUrl?: string;
         bio?: string;
+        images?: string[];
         currentPassword?: string;
         newPassword?: string;
       };
-      return deps.updateProfile.execute({ userId: user.id, name, avatarUrl, bio, currentPassword, newPassword });
+      return deps.updateProfile.execute({ userId: user.id, name, avatarUrl, bio, images, currentPassword, newPassword });
     },
   );
 
@@ -98,7 +108,7 @@ export async function registerProfileRoutes(
     {
       schema: {
         tags: ["Users"],
-        summary: "Get public user profile",
+        summary: "Obter perfil público do usuário",
         params: {
           type: "object",
           required: ["id"],
@@ -106,20 +116,24 @@ export async function registerProfileRoutes(
         },
         response: {
           200: {
-            description: "Public user profile",
+            description: "Perfil público do usuário",
             type: "object",
             properties: {
               id: { type: "string" },
               name: { type: "string" },
               role: { type: "string", enum: ["GUEST", "HOST"] },
-              avatarUrl: { type: "string" },
-              bio: { type: "string" },
+              avatarUrl: { type: "string", nullable: true },
+              bio: { type: "string", nullable: true },
+              images: {
+                type: "array",
+                items: { type: "object", properties: { id: { type: "string" }, url: { type: "string" }, order: { type: "number" }, isPrimary: { type: "boolean" } } },
+              },
               accommodationCount: { type: "number" },
               createdAt: { type: "string", format: "date-time" },
             },
           },
           404: {
-            description: "User not found",
+            description: "Usuário não encontrado",
             type: "object",
             properties: { error: { type: "string" } },
           },

@@ -2,6 +2,7 @@ import { Accommodation } from "./Accommodation";
 import { randomUUID } from "crypto";
 import { calcDays } from "../utils/date";
 import { BookingNotPendingError } from "../errors/DomainError";
+import { formatCurrency } from "../../lib/currency";
 
 export type BookingStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELED";
 
@@ -55,15 +56,21 @@ export class Booking {
   }
 
   summarize(): string {
+    const statusMap: Record<string, string> = {
+      PENDING: "PENDENTE",
+      APPROVED: "APROVADA",
+      REJECTED: "RECUSADA",
+      CANCELED: "CANCELADA",
+    };
     return [
-      `Booking #${this.id.slice(0, 8)}`,
-      `  Accommodation : ${this.accommodation.name}`,
-      `  Check-in      : ${this.checkIn.toDateString()}`,
-      `  Check-out     : ${this.checkOut.toDateString()}`,
-      `  Days          : ${this.days}`,
-      `  Base price    : $${this.basePrice.toFixed(2)}`,
-      `  Total price   : $${this.totalPrice.toFixed(2)}`,
-      `  Status        : ${this.status}`,
+      `Reserva #${this.id.slice(0, 8)}`,
+      `  Acomodação   : ${this.accommodation.name}`,
+      `  Check-in     : ${this.checkIn.toLocaleDateString("pt-BR")}`,
+      `  Check-out    : ${this.checkOut.toLocaleDateString("pt-BR")}`,
+      `  Diárias      : ${this.days}`,
+      `  Preço base   : ${formatCurrency(this.basePrice)}`,
+      `  Preço total  : ${formatCurrency(this.totalPrice)}`,
+      `  Status       : ${statusMap[this.status] ?? this.status}`,
     ].join("\n");
   }
 }

@@ -14,11 +14,13 @@ import { getErrorMessage } from "@/lib/errors";
 import type { Accommodation, UserPublic, PricePreview, FeeItem } from "@/lib/types";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "@/components/ui/tooltip";
+import { Info, ChevronRight } from "lucide-react";
 
 export default function AccommodationPage() {
   const { id } = useParams();
   const router = useRouter();
-  const { token } = useAuth();
+  const { user } = useAuth();
   const [accommodation, setAccommodation] = useState<Accommodation | null>(null);
   const [host, setHost] = useState<UserPublic | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,6 +33,7 @@ export default function AccommodationPage() {
   const [loadingBook, setLoadingBook] = useState(false);
   const [selectedImage, setSelectedImage] = useState(0);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [discountOpen, setDiscountOpen] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -46,6 +49,13 @@ export default function AccommodationPage() {
         setLoading(false);
       });
   }, [id]);
+
+  useEffect(() => {
+    if (!checkIn || !checkOut) { setPreview(null); return; }
+    setDiscountOpen(false);
+    const timer = setTimeout(() => handlePreview(), 300);
+    return () => clearTimeout(timer);
+  }, [checkIn, checkOut]);
 
   async function handlePreview() {
     if (!checkIn || !checkOut) return;
@@ -64,10 +74,10 @@ export default function AccommodationPage() {
   }
 
   async function handleBook() {
-    if (!token) { router.push("/login"); return; }
+    if (!user) { router.push("/login"); return; }
     setLoadingBook(true);
     try {
-      await createBooking(id as string, checkIn, checkOut, token);
+      await createBooking(id as string, checkIn, checkOut);
       setSuccess(true);
       toast.success("Solicitação enviada ao anfitrião.");
     } catch (err: unknown) {
@@ -241,22 +251,63 @@ export default function AccommodationPage() {
                 <div className="mt-6 bg-card border rounded-xl p-5 space-y-3">
                   <h3 className="font-semibold text-sm text-muted-foreground uppercase tracking-wider">Resumo de preços</h3>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Base ({preview.base > 0 ? `${(preview.base / accommodation.pricePerNight).toFixed(0)} diárias` : ""})</span>
+                    <span className="text-muted-foreground">Base ({preview.days > 0 ? `${preview.days} ${preview.days === 1 ? "diária" : "diárias"}` : ""})</span>
                     <span className="font-medium">{formatCurrency(preview.base)}</span>
                   </div>
                   <div className="border-t" />
-                  {preview.fees?.map((f: FeeItem) => {
-                    const isDiscount = f.amount < 0;
-                    const isLongStay = f.name.includes("Long Stay");
-                    return (
-                      <div key={f.name} className="flex justify-between text-sm">
-                        <span className={isLongStay ? "text-green-600" : "text-muted-foreground"}>{f.name}</span>
-                        <span className={`font-medium ${isDiscount ? "text-green-600" : ""}`}>
-                          {isDiscount ? `−${formatCurrency(Math.abs(f.amount))}` : `+${formatCurrency(f.amount)}`}
-                        </span>
-                      </div>
-                    );
-                  })}
+                  <TooltipProvider>
+                    {preview.fees?.map((f: FeeItem) => {
+                      const isDiscount = f.amount < 0 || f.name.includes("Desconto");
+                      const isLongStay = f.name.includes("Longa Permanência");
+                      return (
+                        <div key={f.name}>
+                          <div className="flex justify-between text-sm">
+                            <span className="flex items-center gap-1 text-muted-foreground">
+                              {isLongStay && f.amount === 0 ? (
+                                <button
+                                  onClick={() => setDiscountOpen(!discountOpen)}
+                                  className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors"
+                                >
+                                  <ChevronRight
+                                    className={`size-3 transition-transform ${discountOpen ? "rotate-90" : ""}`}
+                                  />
+                                  {f.name}
+                                </button>
+                              ) : (
+                                <>
+                                  <span className={isLongStay ? "text-green-600" : ""}>{f.name}</span>
+                                  {f.name === "Taxa da Plataforma" && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="size-3 cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>5,85% sobre o valor base</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                  {f.name === "Taxa de Serviço" && (
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <Info className="size-3 cursor-help" />
+                                      </TooltipTrigger>
+                                      <TooltipContent>3% sobre o valor base</TooltipContent>
+                                    </Tooltip>
+                                  )}
+                                </>
+                              )}
+                            </span>
+                            <span className={`font-medium ${isDiscount ? (f.amount === 0 ? "text-muted-foreground" : "text-green-600") : ""}`}>
+                              {isDiscount ? `−${formatCurrency(Math.abs(f.amount))}` : `+${formatCurrency(f.amount)}`}
+                            </span>
+                          </div>
+                          {isLongStay && f.amount === 0 && discountOpen && (
+                            <p className="text-xs text-muted-foreground mt-1 ml-5">
+                              10% de desconto para estadias a partir de 7 diárias
+                            </p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </TooltipProvider>
                   <div className="border-t" />
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>

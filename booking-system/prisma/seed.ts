@@ -38,8 +38,8 @@ const accommodations = [
     name: "Chalé na Serra - Campos do Jordão",
     type: "house",
     pricePerNight: 420,
-    description: "Chalé romântico com lareira, banheira de hidromassagem e vista para a serra. Perfect para casais. Perto do centro.",
-    imageUrl: "https://images.unsplash.com/photo-dUws2oAdGMI?w=800&q=80",
+    description: "Chalé romântico com lareira, banheira de hidromassagem e vista para a serra. Perfeito para casais. Perto do centro.",
+    imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&q=80",
     ownerEmail: "host2@booking.com",
   },
   {
@@ -81,14 +81,16 @@ const accommodations = [
 ];
 
 async function main() {
+  const passwordHash = await bcrypt.hash(PASSWORD, 10);
+
   const anna = await prisma.user.upsert({
     where: { email: "host@booking.com" },
-    update: {},
+    update: { password: passwordHash },
     create: {
       id: "host-anna-00001",
       name: "Ana Silva",
       email: "host@booking.com",
-      password: await bcrypt.hash(PASSWORD, 10),
+      password: passwordHash,
       role: "HOST",
       bio: "Anfitriã dedicada em Florianópolis e SP. Amo receber hóspedes e compartilhar dicas da cidade.",
     },
@@ -96,12 +98,12 @@ async function main() {
 
   const carlos = await prisma.user.upsert({
     where: { email: "host2@booking.com" },
-    update: {},
+    update: { password: passwordHash },
     create: {
       id: "host-carlos-002",
       name: "Carlos Santos",
       email: "host2@booking.com",
-      password: await bcrypt.hash(PASSWORD, 10),
+      password: passwordHash,
       role: "HOST",
       bio: "Anfitrião viajante, tenho acomodações no RJ, MG e PE. Sempre disponível para ajudar!",
     },
@@ -109,12 +111,12 @@ async function main() {
 
   const guest1 = await prisma.user.upsert({
     where: { email: "guest@booking.com" },
-    update: {},
+    update: { password: passwordHash },
     create: {
       id: "guest-maria-001",
       name: "Maria Oliveira",
       email: "guest@booking.com",
-      password: await bcrypt.hash(PASSWORD, 10),
+      password: passwordHash,
       role: "GUEST",
       bio: "Viajante frequente, adoro conhecer lugares novos.",
     },
@@ -122,12 +124,12 @@ async function main() {
 
   const guest2 = await prisma.user.upsert({
     where: { email: "guest2@booking.com" },
-    update: {},
+    update: { password: passwordHash },
     create: {
       id: "guest-joao-002",
       name: "João Pereira",
       email: "guest2@booking.com",
-      password: await bcrypt.hash(PASSWORD, 10),
+      password: passwordHash,
       role: "GUEST",
     },
   });

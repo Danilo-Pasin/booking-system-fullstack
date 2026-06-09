@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import toast from "react-hot-toast";
@@ -13,83 +13,86 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { FormCard } from "@/components/ui/FormCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
+import type { ImageItem } from "@/lib/types";
 
 export default function EditProfilePage() {
   const router = useRouter();
-  const { user, token, updateUser, isLoading } = useAuth();
+  const { user, updateUser, isLoading } = useAuth();
   const [name, setName] = useState("");
-  const [avatarUrl, setAvatarUrl] = useState("");
+  const [images, setImages] = useState<ImageItem[]>([]);
   const [bio, setBio] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isLoading) return;
-    if (!token) return;
-    fetchProfile(token)
+    fetchProfile()
       .then((data) => {
         setName(data.name);
-        setAvatarUrl(data.avatarUrl ?? "");
+        setImages(data.images ?? []);
         setBio(data.bio ?? "");
         setLoading(false);
       })
       .catch(() => {
         router.push("/");
       });
-  }, [user, token, isLoading, router]);
-
-  function validateField(field: string, value: string): string | null {
-    switch (field) {
-      case "name":
-        if (!value.trim() || value.trim().length < 2) return "O nome deve ter pelo menos 2 caracteres.";
-        return null;
-      case "avatarUrl":
-        if (value.trim() && !/^https?:\/\//.test(value.trim())) return "A URL deve começar com http:// ou https://.";
-        return null;
-      case "bio":
-        if (value.length > 500) return "A biografia deve ter no máximo 500 caracteres.";
-        return null;
-      default:
-        return null;
-    }
-  }
+  }, [user, isLoading, router]);
 
   function validate(): boolean {
     const errs: Record<string, string> = {};
-    const fields = [
-      ["name", name],
-      ["avatarUrl", avatarUrl],
-      ["bio", bio],
-    ] as const;
-    for (const [f, v] of fields) {
-      const err = validateField(f, v);
-      if (err) errs[f] = err;
-    }
+    if (!name.trim() || name.trim().length < 2) errs.name = "O nome deve ter pelo menos 2 caracteres.";
+    if (bio.length > 500) errs.bio = "A biografia deve ter no máximo 500 caracteres.";
     setErrors(errs);
     return Object.keys(errs).length === 0;
   }
 
-  function handleBlur(field: string, value: string) {
-    const err = validateField(field, value);
-    if (err) {
-      setErrors(prev => ({ ...prev, [field]: err }));
-    } else {
-      setErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const { url } = await uploadImage(file);
+      setImages(prev => [...prev, { id: crypto.randomUUID(), url, order: prev.length, isPrimary: prev.length === 0 }]);
+      toast.success("Imagem adicionada!");
+    } catch (err: unknown) {
+      toast.error(getErrorMessage(err));
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
+  }
+
+  function handleRemove(index: number) {
+    setImages(prev => {
+      const next = prev.filter((_, i) => i !== index);
+      return next.map((img, i) => ({ ...img, order: i, isPrimary: i === 0 }));
+    });
+  }
+
+  function handleSetPrimary(index: number) {
+    setImages(prev => prev.map((img, i) => ({ ...img, isPrimary: i === index })));
+  }
+
+  function handleReorder(from: number, to: number) {
+    setImages(prev => {
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next.map((img, i) => ({ ...img, order: i, isPrimary: i === 0 }));
+    });
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!token) return;
     setErrors({});
     if (!validate()) return;
     setSaving(true);
     try {
       const result = await updateProfile(
-        { name, avatarUrl: avatarUrl || undefined, bio: bio || undefined },
-        token
+        { name, images: images.map(i => i.url), bio: bio || undefined },
       );
       updateUser({ name: result.name, avatarUrl: result.avatarUrl, bio: result.bio });
       toast.success("Perfil atualizado!");
@@ -113,7 +116,6 @@ export default function EditProfilePage() {
               <Skeleton className="h-12 rounded-lg" />
               <Skeleton className="h-12 rounded-lg" />
               <Skeleton className="h-24 rounded-lg" />
-              <Skeleton className="h-12 rounded-lg" />
             </div>
           </div>
         </main>
@@ -133,49 +135,80 @@ export default function EditProfilePage() {
               placeholder="Nome"
               value={name}
               onChange={e => setName(e.target.value)}
-              onBlur={e => handleBlur("name", e.target.value)}
               required
             />
             {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Foto do perfil</label>
-            <div className="flex items-center gap-3 mb-2">
-              {avatarUrl && (
-                <img src={avatarUrl} alt="" className="w-12 h-12 rounded-full object-cover border" />
-              )}
-              <label className="cursor-pointer bg-muted text-muted-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent transition">
-                {uploadingAvatar ? "Enviando..." : "Enviar foto"}
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  disabled={uploadingAvatar}
-                  onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file || !token) return;
-                    setUploadingAvatar(true);
-                    try {
-                      const { url } = await uploadImage(file, token);
-                      setAvatarUrl(url);
-                    } catch (err: unknown) {
-                      toast.error(getErrorMessage(err));
-                    } finally {
-                      setUploadingAvatar(false);
-                    }
-                  }}
-                />
-              </label>
-            </div>
-            <Input
-              type="url"
-              placeholder="Ou cole uma URL (opcional)"
-              value={avatarUrl}
-              onChange={e => setAvatarUrl(e.target.value)}
-              onBlur={e => handleBlur("avatarUrl", e.target.value)}
-            />
-            {errors.avatarUrl && <p className="text-destructive text-sm mt-1">{errors.avatarUrl}</p>}
+            <label className="text-sm text-muted-foreground mb-2 block">Fotos do perfil</label>
+            {images.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-3">
+                {images.map((img, i) => (
+                  <div key={img.id} className="relative group">
+                    <img
+                      src={img.url}
+                      alt=""
+                      className={`w-20 h-20 rounded-lg object-cover border-2 ${img.isPrimary ? "border-blue-500" : "border-transparent"}`}
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1 rounded-lg">
+                      {!img.isPrimary && (
+                        <button
+                          type="button"
+                          onClick={() => handleSetPrimary(i)}
+                          className="text-white text-xs bg-blue-600 px-1 py-0.5 rounded"
+                          title="Definir como principal"
+                        >
+                          ★
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleRemove(i)}
+                        className="text-white text-xs bg-red-600 px-1 py-0.5 rounded"
+                        title="Remover"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    {i > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleReorder(i, i - 1)}
+                        className="absolute -left-2 top-1/2 -translate-y-1/2 bg-muted rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                        title="Mover para esquerda"
+                      >
+                        ‹
+                      </button>
+                    )}
+                    {i < images.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleReorder(i, i + 1)}
+                        className="absolute -right-2 top-1/2 -translate-y-1/2 bg-muted rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition"
+                        title="Mover para direita"
+                      >
+                        ›
+                      </button>
+                    )}
+                    {img.isPrimary && (
+                      <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] px-1 rounded"> principal</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            <label className="cursor-pointer bg-muted text-muted-foreground px-4 py-2 rounded-lg text-sm font-medium hover:bg-accent transition inline-block">
+              {uploading ? "Enviando..." : "Adicionar foto"}
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={uploading}
+                onChange={handleUpload}
+              />
+            </label>
           </div>
 
           <div>
@@ -183,14 +216,13 @@ export default function EditProfilePage() {
               placeholder="Biografia (opcional, max 500 caracteres)"
               value={bio}
               onChange={e => setBio(e.target.value)}
-              onBlur={e => handleBlur("bio", e.target.value)}
               rows={4}
               maxLength={500}
             />
             {errors.bio && <p className="text-destructive text-sm mt-1">{errors.bio}</p>}
           </div>
 
-          <Button type="submit" disabled={saving} className="w-full">
+          <Button type="submit" disabled={saving || uploading} className="w-full">
             {saving ? "Salvando..." : "Salvar"}
           </Button>
         </form>

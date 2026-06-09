@@ -118,9 +118,9 @@ describe("Booking entity", () => {
     const booking = new Booking(makeHouse(), checkIn, checkOut, 1000, "user-1");
     const summary = booking.summarize();
 
-    expect(summary).toContain("Booking #");
+    expect(summary).toContain("Reserva #");
     expect(summary).toContain("Test House");
-    expect(summary).toContain("$1080.00");
-    expect(summary).toContain("$1000.00");
+    expect(summary).toContain("R$\u00a01.080,00");
+    expect(summary).toContain("R$\u00a01.000,00");
   });
 });
