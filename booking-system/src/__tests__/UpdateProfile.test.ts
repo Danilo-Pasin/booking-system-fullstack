@@ -3,10 +3,12 @@ import { UpdateProfile } from "../application/use-cases/UpdateProfile";
 import { InMemoryUserRepository } from "../infra/repositories/InMemoryUserRepository";
 import { NotFoundError } from "../domain/errors/DomainError";
 import { User } from "../domain/entities/User";
+import { MockPasswordHasher } from "./MockPasswordHasher";
 
 describe("UpdateProfile", () => {
   const repo = new InMemoryUserRepository();
-  const useCase = new UpdateProfile(repo);
+  const hasher = new MockPasswordHasher();
+  const useCase = new UpdateProfile(repo, hasher);
 
   const user: User = {
     id: "user-1",

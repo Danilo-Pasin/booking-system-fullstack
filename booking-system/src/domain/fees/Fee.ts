@@ -4,7 +4,7 @@ export interface Fee {
 }
 
 export class PlatformFee implements Fee {
-  public readonly name = "Platform Fee";
+  public readonly name = "Taxa da Plataforma";
   private readonly RATE = 0.0585; // 5.85%
 
   calculate(amount: number): number {
@@ -13,7 +13,7 @@ export class PlatformFee implements Fee {
 }
 
 export class CleaningFee implements Fee {
-  public readonly name = "Cleaning Fee";
+  public readonly name = "Taxa de Limpeza";
 
   constructor(private readonly fixedAmount: number) {}
 
@@ -23,7 +23,7 @@ export class CleaningFee implements Fee {
 }
 
 export class ServiceFee implements Fee {
-  public readonly name = "Service Fee";
+  public readonly name = "Taxa de Serviço";
 
   constructor(private readonly rate: number) {}
 
@@ -39,7 +39,7 @@ export class DiscountCoupon implements Fee {
     code: string,
     private readonly discountRate: number
   ) {
-    this.name = `Coupon (${code})`;
+    this.name = `Cupom (${code})`;
   }
 
   calculate(amount: number): number {
@@ -48,7 +48,7 @@ export class DiscountCoupon implements Fee {
 }
 
 export class LongStayDiscount implements Fee {
-  public readonly name = "Long Stay Discount (10%)";
+  public readonly name = "Desconto para Longa Permanência (10%)";
   private readonly DISCOUNT_RATE = 0.10;
   private readonly MIN_DAYS = 7;
 

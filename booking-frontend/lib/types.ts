@@ -1,3 +1,10 @@
+export type ImageItem = {
+  id: string;
+  url: string;
+  order: number;
+  isPrimary?: boolean;
+};
+
 export type User = {
   id: string;
   name: string;
@@ -5,6 +12,7 @@ export type User = {
   role: "GUEST" | "HOST";
   avatarUrl?: string;
   bio?: string;
+  images?: ImageItem[];
   createdAt?: string;
 };
 
@@ -19,7 +27,7 @@ export type Accommodation = {
   pricePerNight: number;
   description?: string;
   imageUrl?: string;
-  images?: { url: string; order: number }[];
+  images?: ImageItem[];
   ownerId?: string;
 };
 
@@ -29,6 +37,7 @@ export type FeeItem = {
 };
 
 export type PricePreview = {
+  days: number;
   base: number;
   fees: FeeItem[];
   total: number;
@@ -89,4 +98,5 @@ export type UpdateProfileData = {
   name?: string;
   avatarUrl?: string;
   bio?: string;
+  images?: string[];
 };

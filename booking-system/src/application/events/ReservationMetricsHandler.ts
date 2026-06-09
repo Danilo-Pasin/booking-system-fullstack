@@ -1,6 +1,7 @@
 import { EventHandler } from "./EventDispatcher";
 import { BookingCreatedEvent } from "../../domain/events/BookingCreatedEvent";
 import { DomainEvent } from "../../domain/events/DomainEvent";
+import { formatCurrency } from "../../lib/currency";
 
 export class ReservationMetricsHandler implements EventHandler {
   private totalBookings = 0;
@@ -14,11 +15,11 @@ export class ReservationMetricsHandler implements EventHandler {
     this.totalRevenue += booking.totalPrice;
 
     console.log("\n┌─────────────────────────────────────────────┐");
-    console.log("│ 📊 METRICS / AUDIT LOG                     │");
+    console.log("│ 📊 MÉTRICAS / LOG DE AUDITORIA             │");
     console.log("├─────────────────────────────────────────────┤");
-    console.log(`│ Total bookings  : ${String(this.totalBookings).padEnd(30)}│`);
-    console.log(`│ Total revenue   : $${this.totalRevenue.toFixed(2).padEnd(26)}│`);
-    console.log(`│ Last booking    : ${booking.id.slice(0, 8).padEnd(30)}│`);
+    console.log(`│ Total reservas : ${String(this.totalBookings).padEnd(30)}│`);
+    console.log(`│ Receita total  : ${formatCurrency(this.totalRevenue).padEnd(29)}│`);
+    console.log(`│ Última reserva : ${booking.id.slice(0, 8).padEnd(30)}│`);
     console.log("└─────────────────────────────────────────────┘\n");
   }
 }

@@ -11,9 +11,9 @@ export class GetBookingById {
 
   async execute(input: GetBookingByIdInput) {
     const booking = await this.bookingRepository.findById(input.bookingId);
-    if (!booking) throw new NotFoundError("Booking not found");
+    if (!booking) throw new NotFoundError("Reserva não encontrada");
     if (booking.userId !== input.userId) {
-      throw new ForbiddenError("This booking does not belong to you");
+      throw new ForbiddenError("Esta reserva não pertence a você");
     }
     return booking;
   }

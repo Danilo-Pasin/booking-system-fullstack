@@ -10,10 +10,12 @@ import {
   ForbiddenError,
   BookingAlreadyApprovedError,
 } from "../domain/errors/DomainError";
+import { EventDispatcher } from "../application/events/EventDispatcher";
 
 describe("UpdateBookingStatus", () => {
   const repo = new InMemoryBookingRepository();
-  const useCase = new UpdateBookingStatus(repo);
+  const eventDispatcher = new EventDispatcher();
+  const useCase = new UpdateBookingStatus(repo, eventDispatcher);
 
   const ownerId = "host-1";
   const guestId = "guest-1";

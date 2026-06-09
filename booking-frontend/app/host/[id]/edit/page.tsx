@@ -13,19 +13,19 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { FormCard } from "@/components/ui/FormCard";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Button } from "@/components/ui/button";
+import type { ImageItem } from "@/lib/types";
 
 export default function EditAccommodationPage() {
   const router = useRouter();
   const params = useParams();
-  const { user, token, isLoading } = useAuth();
+  const { user, isLoading } = useAuth();
   const id = params.id as string;
 
   const [name, setName] = useState("");
   const [type, setType] = useState("house");
   const [pricePerNight, setPricePerNight] = useState("");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
-  const [imagePreview, setImagePreview] = useState("");
+  const [images, setImages] = useState<ImageItem[]>([]);
   const [uploading, setUploading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -36,7 +36,7 @@ export default function EditAccommodationPage() {
   useEffect(() => {
     if (isLoading) return;
     if (!user || user.role !== "HOST") { router.push("/"); return; }
-    if (!id || !token) return;
+    if (!id) return;
 
     fetchAccommodation(id)
       .then((data) => {
@@ -44,31 +44,37 @@ export default function EditAccommodationPage() {
         setType(data.type);
         setPricePerNight(String(data.pricePerNight));
         setDescription(data.description ?? "");
-        setImageUrl(data.imageUrl ?? "");
-        setImagePreview(data.imageUrl ?? "");
+        setImages(data.images ?? []);
       })
       .catch(() => setNotFound(true))
       .finally(() => setLoading(false));
-  }, [user, token, id, isLoading, router]);
+  }, [user, id, isLoading, router]);
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !token) return;
-
-    const previewUrl = URL.createObjectURL(file);
-    setImagePreview(previewUrl);
+    if (!file) return;
     setUploading(true);
-
     try {
-      const result = await uploadImage(file, token);
-      setImageUrl(result.url);
-      toast.success("Imagem enviada!");
+      const { url } = await uploadImage(file);
+      setImages(prev => [...prev, { id: crypto.randomUUID(), url, order: prev.length, isPrimary: prev.length === 0 }]);
+      toast.success("Imagem adicionada!");
     } catch (err: unknown) {
       toast.error(getErrorMessage(err));
-      setImagePreview(imageUrl);
     } finally {
       setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
+  }
+
+  function handleRemove(index: number) {
+    setImages(prev => {
+      const next = prev.filter((_, i) => i !== index);
+      return next.map((img, i) => ({ ...img, order: i, isPrimary: i === 0 }));
+    });
+  }
+
+  function handleSetPrimary(index: number) {
+    setImages(prev => prev.map((img, i) => ({ ...img, isPrimary: i === index })));
   }
 
   function validate(): boolean {
@@ -80,29 +86,15 @@ export default function EditAccommodationPage() {
     return Object.keys(errs).length === 0;
   }
 
-  function handleBlur(field: string, value: string) {
-    if (field === "name" && !value.trim()) {
-      setErrors(prev => ({ ...prev, name: "O nome é obrigatório." }));
-    } else if (field === "pricePerNight" && (!value || Number(value) <= 0)) {
-      setErrors(prev => ({ ...prev, pricePerNight: "O preço por noite deve ser maior que zero." }));
-    } else if (field === "description" && value.length > 1000) {
-      setErrors(prev => ({ ...prev, description: "A descrição deve ter no máximo 1000 caracteres." }));
-    } else {
-      setErrors(prev => { const next = { ...prev }; delete next[field]; return next; });
-    }
-  }
-
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!token) return;
     setErrors({});
     if (!validate()) return;
     setSaving(true);
     try {
       await updateAccommodation(
         id,
-        { name, pricePerNight: Number(pricePerNight), description: description || undefined, imageUrl: imageUrl || undefined },
-        token
+        { name, pricePerNight: Number(pricePerNight), description: description || undefined, images: images.map(i => i.url) },
       );
       toast.success("Acomodação atualizada!");
       router.push("/host");
@@ -136,12 +128,7 @@ export default function EditAccommodationPage() {
         <div className="text-4xl mb-4">🔍</div>
         <h1 className="text-2xl font-bold mb-2">Acomodação não encontrada</h1>
         <p className="text-muted-foreground mb-6">O ID informado não corresponde a nenhuma acomodação.</p>
-        <Link
-          href="/host"
-          className="text-blue-600 hover:text-blue-500 underline transition"
-        >
-          Voltar ao painel
-        </Link>
+        <Link href="/host" className="text-blue-600 hover:text-blue-500 underline transition">Voltar ao painel</Link>
       </main>
     );
   }
@@ -158,7 +145,6 @@ export default function EditAccommodationPage() {
               placeholder="Nome"
               value={name}
               onChange={e => setName(e.target.value)}
-              onBlur={e => handleBlur("name", e.target.value)}
               required
             />
             {errors.name && <p className="text-destructive text-sm mt-1">{errors.name}</p>}
@@ -181,7 +167,6 @@ export default function EditAccommodationPage() {
               placeholder="Preço por noite"
               value={pricePerNight}
               onChange={e => setPricePerNight(e.target.value)}
-              onBlur={e => handleBlur("pricePerNight", e.target.value)}
               min={1}
               required
             />
@@ -193,27 +178,41 @@ export default function EditAccommodationPage() {
               placeholder="Descrição (opcional)"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              onBlur={e => handleBlur("description", e.target.value)}
               rows={4}
             />
             {errors.description && <p className="text-destructive text-sm mt-1">{errors.description}</p>}
           </div>
 
           <div>
-            <label className="text-sm text-muted-foreground mb-2 block">Imagem (opcional)</label>
+            <label className="text-sm text-muted-foreground mb-2 block">Fotos</label>
+            {images.length > 0 && (
+              <div className="flex flex-wrap gap-3 mb-3">
+                {images.map((img, i) => (
+                  <div key={img.id} className="relative group">
+                    <img
+                      src={img.url}
+                      alt=""
+                      className={`w-24 h-20 rounded-lg object-cover border-2 ${img.isPrimary ? "border-blue-500" : "border-transparent"}`}
+                    />
+                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition flex items-center justify-center gap-1 rounded-lg">
+                      {!img.isPrimary && (
+                        <button type="button" onClick={() => handleSetPrimary(i)} className="text-white text-xs bg-blue-600 px-1 py-0.5 rounded" title="Principal">★</button>
+                      )}
+                      <button type="button" onClick={() => handleRemove(i)} className="text-white text-xs bg-red-600 px-1 py-0.5 rounded" title="Remover">✕</button>
+                    </div>
+                    {img.isPrimary && <span className="absolute -top-1 -right-1 bg-blue-500 text-white text-[10px] px-1 rounded">principal</span>}
+                  </div>
+                ))}
+              </div>
+            )}
             <input
               ref={fileRef}
               type="file"
               accept="image/jpeg,image/jpg,image/png,image/webp"
-              onChange={handleFileChange}
+              onChange={handleUpload}
               className="w-full text-muted-foreground text-sm file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-primary file:text-primary-foreground hover:file:bg-primary/80 transition file:cursor-pointer"
             />
             {uploading && <p className="text-blue-600 text-sm mt-2">Enviando imagem...</p>}
-            {imagePreview && !uploading && (
-              <div className="mt-3 rounded-lg overflow-hidden h-40 bg-muted">
-                <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-              </div>
-            )}
           </div>
 
           <Button type="submit" disabled={saving || uploading} className="w-full">
@@ -222,9 +221,7 @@ export default function EditAccommodationPage() {
         </form>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
-          <Link href="/host" className="text-blue-600 hover:text-blue-500 transition">
-            Cancelar
-          </Link>
+          <Link href="/host" className="text-blue-600 hover:text-blue-500 transition">Cancelar</Link>
         </p>
       </FormCard>
       </main>

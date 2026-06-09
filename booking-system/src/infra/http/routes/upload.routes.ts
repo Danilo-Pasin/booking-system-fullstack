@@ -20,17 +20,17 @@ export async function registerUploadRoutes(
       preHandler: authenticate,
       schema: {
         tags: ["Uploads"],
-        summary: "Upload an image to Cloudinary",
+        summary: "Enviar imagem para Cloudinary",
         security: [{ bearerAuth: [] }],
         consumes: ["multipart/form-data"],
         response: {
           200: {
-            description: "Image URL",
+            description: "URL da imagem",
             type: "object",
             properties: { url: { type: "string" } },
           },
           400: {
-            description: "Validation error",
+            description: "Erro de validação",
             type: "object",
             properties: { error: { type: "string" } },
           },
@@ -40,7 +40,7 @@ export async function registerUploadRoutes(
     async (request: FastifyRequest, reply) => {
       const file = await request.file() as MultipartFile | undefined;
       if (!file) {
-        throw new ValidationError("No file uploaded");
+        throw new ValidationError("Nenhum arquivo enviado");
       }
 
       const buffer = await file.toBuffer();

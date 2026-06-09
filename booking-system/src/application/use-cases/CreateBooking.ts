@@ -49,7 +49,9 @@ export class CreateBooking {
     if (checkOut <= checkIn) {
       throw new InvalidDateRangeError();
     }
-    if (checkIn < new Date(new Date().setHours(0, 0, 0, 0))) {
+    const now = new Date();
+    const todayUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+    if (checkIn < todayUTC) {
       throw new PastCheckInError();
     }
   }

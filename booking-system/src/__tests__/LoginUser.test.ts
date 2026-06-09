@@ -1,16 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import bcrypt from "bcrypt";
 import { LoginUser } from "../application/use-cases/LoginUser";
 import { UserRepository } from "../domain/repositories/UserRepository";
 import { User } from "../domain/entities/User";
 import { InvalidCredentialsError } from "../domain/errors/DomainError";
+import { MockPasswordHasher } from "./MockPasswordHasher";
 
-vi.mock("bcrypt", () => ({
-  default: {
-    compare: vi.fn(),
-  },
-  compare: vi.fn(),
-}));
+const mockHasher = new MockPasswordHasher();
+const hasherSpy = vi.spyOn(mockHasher, "compare");
 
 class InMemoryUserRepository implements UserRepository {
   private readonly store = new Map<string, User>();
@@ -52,11 +48,11 @@ describe("LoginUser", () => {
     vi.clearAllMocks();
     repo = new InMemoryUserRepository();
     repo.add(mockUser);
-    useCase = new LoginUser(repo);
+    useCase = new LoginUser(repo, mockHasher);
   });
 
   it("returns user response on valid credentials", async () => {
-    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    hasherSpy.mockResolvedValue(true);
 
     const result = await useCase.execute({ email: "john@test.com", password: "password123" });
 
@@ -67,7 +63,7 @@ describe("LoginUser", () => {
   });
 
   it("throws InvalidCredentialsError when password is wrong", async () => {
-    vi.mocked(bcrypt.compare).mockResolvedValue(false as never);
+    hasherSpy.mockResolvedValue(false);
 
     await expect(
       useCase.execute({ email: "john@test.com", password: "wrong" }),
@@ -81,7 +77,7 @@ describe("LoginUser", () => {
   });
 
   it("returns the correct shape on successful login", async () => {
-    vi.mocked(bcrypt.compare).mockResolvedValue(true as never);
+    hasherSpy.mockResolvedValue(true);
 
     const result = await useCase.execute({ email: "john@test.com", password: "password123" });
 

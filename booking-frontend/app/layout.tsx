@@ -20,8 +20,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Booking System",
-  description: "Modern booking platform",
+  title: "Sistema de Reservas",
+  description: "Plataforma moderna de reservas",
 };
 
 import { Toaster } from "react-hot-toast";

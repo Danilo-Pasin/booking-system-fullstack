@@ -24,4 +24,19 @@ describe("calcDays", () => {
     const result = calcDays(new Date("2025-06-01"), new Date("2025-06-08"));
     expect(result).toBe(7);
   });
+
+  it("01/07/2026 → 02/07/2026 = 1 noite", () => {
+    const result = calcDays(new Date("2026-07-01"), new Date("2026-07-02"));
+    expect(result).toBe(1);
+  });
+
+  it("01/07/2026 → 03/07/2026 = 2 noites", () => {
+    const result = calcDays(new Date("2026-07-01"), new Date("2026-07-03"));
+    expect(result).toBe(2);
+  });
+
+  it("01/07/2026 → 06/07/2026 = 5 noites", () => {
+    const result = calcDays(new Date("2026-07-01"), new Date("2026-07-06"));
+    expect(result).toBe(5);
+  });
 });

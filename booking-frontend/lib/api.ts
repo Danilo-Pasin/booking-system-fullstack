@@ -21,8 +21,8 @@ export function setOnUnauthorized(cb: () => void) {
   _onUnauthorized = cb;
 }
 
-function authHeader(token?: string): Record<string, string> {
-  return token ? { Authorization: `Bearer ${token}` } : {};
+function authHeader(): Record<string, string> {
+  return {};
 }
 
 async function handleResponse<T>(res: Response): Promise<T> {
@@ -34,7 +34,7 @@ async function handleResponse<T>(res: Response): Promise<T> {
     return undefined as T;
   }
   const body = await res.json();
-  if (!res.ok) throw new Error(body.error ?? "Request failed");
+  if (!res.ok) throw new Error(body.error ?? "Falha na requisição");
   return body as T;
 }
 
@@ -71,13 +71,12 @@ export async function createBooking(
   accommodationId: string,
   checkIn: string,
   checkOut: string,
-  token: string,
 ): Promise<Booking> {
   const res = await fetch(`${API_URL}/bookings`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...authHeader(token),
+      ...authHeader(),
     },
     credentials: "include",
     body: JSON.stringify({ accommodationId, checkIn, checkOut }),
@@ -85,9 +84,8 @@ export async function createBooking(
   return handleResponse<Booking>(res);
 }
 
-export async function fetchBookings(token: string): Promise<Booking[]> {
+export async function fetchBookings(): Promise<Booking[]> {
   const res = await fetch(`${API_URL}/bookings`, {
-    headers: authHeader(token),
     credentials: "include",
   });
   return handleResponse<Booking[]>(res);
@@ -120,18 +118,16 @@ export async function login(
   return handleResponse<{ token: string; user: User }>(res);
 }
 
-export async function cancelBooking(id: string, token: string): Promise<Booking> {
+export async function cancelBooking(id: string): Promise<Booking> {
   const res = await fetch(`${API_URL}/bookings/${id}`, {
     method: "DELETE",
-    headers: authHeader(token),
     credentials: "include",
   });
   return handleResponse<Booking>(res);
 }
 
-export async function fetchMyAccommodations(token: string): Promise<Accommodation[]> {
+export async function fetchMyAccommodations(): Promise<Accommodation[]> {
   const res = await fetch(`${API_URL}/accommodations/mine`, {
-    headers: authHeader(token),
     credentials: "include",
   });
   return handleResponse<Accommodation[]>(res);
@@ -139,13 +135,12 @@ export async function fetchMyAccommodations(token: string): Promise<Accommodatio
 
 export async function createAccommodation(
   data: CreateAccommodationData,
-  token: string,
 ): Promise<Accommodation> {
   const res = await fetch(`${API_URL}/accommodations`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      ...authHeader(token),
+      ...authHeader(),
     },
     credentials: "include",
     body: JSON.stringify(data),
@@ -156,13 +151,12 @@ export async function createAccommodation(
 export async function updateAccommodation(
   id: string,
   data: UpdateAccommodationData,
-  token: string,
 ): Promise<Accommodation> {
   const res = await fetch(`${API_URL}/accommodations/${id}`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      ...authHeader(token),
+      ...authHeader(),
     },
     credentials: "include",
     body: JSON.stringify(data),
@@ -170,18 +164,16 @@ export async function updateAccommodation(
   return handleResponse<Accommodation>(res);
 }
 
-export async function deleteAccommodation(id: string, token: string): Promise<void> {
+export async function deleteAccommodation(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/accommodations/${id}`, {
     method: "DELETE",
-    headers: authHeader(token),
     credentials: "include",
   });
   await handleResponse<void>(res);
 }
 
-export async function fetchProfile(token?: string): Promise<User> {
+export async function fetchProfile(): Promise<User> {
   const res = await fetch(`${API_URL}/auth/me`, {
-    headers: authHeader(token),
     credentials: "include",
   });
   return handleResponse<User>(res);
@@ -189,13 +181,12 @@ export async function fetchProfile(token?: string): Promise<User> {
 
 export async function updateProfile(
   data: UpdateProfileData,
-  token: string,
 ): Promise<User> {
   const res = await fetch(`${API_URL}/auth/me`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
-      ...authHeader(token),
+      ...authHeader(),
     },
     credentials: "include",
     body: JSON.stringify(data),
@@ -210,55 +201,56 @@ export async function fetchPublicUser(id: string): Promise<UserPublic> {
   return handleResponse<UserPublic>(res);
 }
 
-export async function becomeHost(
-  token?: string,
-): Promise<{ token: string; user: User }> {
+export async function becomeHost(): Promise<{ token: string; user: User }> {
   const res = await fetch(`${API_URL}/auth/become-host`, {
     method: "PUT",
-    headers: authHeader(token),
     credentials: "include",
   });
   return handleResponse<{ token: string; user: User }>(res);
 }
 
-export async function uploadImage(file: File, token: string): Promise<{ url: string }> {
+export async function uploadImage(file: File): Promise<{ url: string }> {
   const formData = new FormData();
   formData.append("file", file);
   const res = await fetch(`${API_URL}/uploads/image`, {
     method: "POST",
-    headers: authHeader(token),
     credentials: "include",
     body: formData,
   });
   return handleResponse<{ url: string }>(res);
 }
 
-export async function fetchHostDashboard(token: string): Promise<DashboardData> {
+export async function fetchHostDashboard(): Promise<DashboardData> {
   const res = await fetch(`${API_URL}/host/dashboard`, {
-    headers: authHeader(token),
     credentials: "include",
   });
   return handleResponse<DashboardData>(res);
 }
 
-export async function fetchHostBookings(token: string): Promise<HostBooking[]> {
+export async function fetchHostBookings(): Promise<HostBooking[]> {
   const res = await fetch(`${API_URL}/host/bookings`, {
-    headers: authHeader(token),
     credentials: "include",
   });
   return handleResponse<HostBooking[]>(res);
 }
 
+export async function hostCancelBooking(bookingId: string): Promise<Booking> {
+  const res = await fetch(`${API_URL}/bookings/${bookingId}/cancel`, {
+    method: "PATCH",
+    credentials: "include",
+  });
+  return handleResponse<Booking>(res);
+}
+
 export async function updateBookingStatus(
   bookingId: string,
   status: "APPROVED" | "REJECTED",
-  token: string,
 ): Promise<Booking> {
   const res = await fetch(`${API_URL}/bookings/${bookingId}/status`, {
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      ...authHeader(token),
+      ...authHeader(),
     },
     credentials: "include",
     body: JSON.stringify({ status }),

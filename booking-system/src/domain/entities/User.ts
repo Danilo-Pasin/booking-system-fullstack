@@ -1,3 +1,5 @@
+import type { Image } from "./Image";
+
 export interface User {
   id: string;
   name: string;
@@ -6,5 +8,6 @@ export interface User {
   role: "GUEST" | "HOST";
   avatarUrl?: string;
   bio?: string;
+  images?: Image[];
   createdAt: Date;
 }

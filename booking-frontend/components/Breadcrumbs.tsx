@@ -38,14 +38,14 @@ export function Breadcrumbs({ segments: customSegments }: { segments?: { label: 
   const parts = pathname.split("/").filter(Boolean);
 
   const items: { label: string; href?: string }[] = customSegments
-    ? [{ label: "Home", href: "/" }, ...customSegments]
+    ? [{ label: "Início", href: "/" }, ...customSegments]
     : parts.reduce<{ label: string; href: string }[]>(
         (acc, _, i) => {
           const href = "/" + parts.slice(0, i + 1).join("/");
           acc.push({ label: getLabel(parts, i), href });
           return acc;
         },
-        [{ label: "Home", href: "/" }]
+        [{ label: "Início", href: "/" }]
       );
 
   return (

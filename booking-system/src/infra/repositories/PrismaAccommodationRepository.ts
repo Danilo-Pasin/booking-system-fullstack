@@ -17,7 +17,7 @@ function toDomain(raw: any): Accommodation {
     pricePerNight: raw.pricePerNight,
     description: raw.description,
     imageUrl: raw.imageUrl,
-    images: raw.images?.map((i: any) => ({ id: i.id, url: i.url, order: i.order }) as Image) ?? [],
+    images: raw.images?.map((i: any) => ({ id: i.id, url: i.url, order: i.order, isPrimary: i.isPrimary }) as Image) ?? [],
     ownerId: raw.ownerId,
   });
 }
@@ -81,6 +81,7 @@ export class PrismaAccommodationRepository implements AccommodationRepository {
             id: img.id,
             url: img.url,
             order: img.order ?? i,
+            isPrimary: img.isPrimary ?? i === 0,
           })),
         },
       },
@@ -103,6 +104,7 @@ export class PrismaAccommodationRepository implements AccommodationRepository {
               id: img.id,
               url: img.url,
               order: img.order ?? i,
+              isPrimary: img.isPrimary ?? i === 0,
             })),
           },
         },

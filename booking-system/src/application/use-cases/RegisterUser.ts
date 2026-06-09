@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
-import bcrypt from "bcrypt";
 import { UserRepository } from "../../domain/repositories/UserRepository";
 import { EmailAlreadyInUseError, ValidationError } from "../../domain/errors/DomainError";
+import type { PasswordHasher } from "../../domain/services/PasswordHasher";
 import { toUserResponse } from "./UserResponse";
 
 export interface RegisterUserInput {
@@ -12,7 +12,10 @@ export interface RegisterUserInput {
 }
 
 export class RegisterUser {
-  constructor(private readonly userRepository: UserRepository) {}
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly passwordHasher: PasswordHasher,
+  ) {}
 
   async execute(input: RegisterUserInput) {
     const existing = await this.userRepository.findByEmail(input.email);
@@ -22,10 +25,10 @@ export class RegisterUser {
 
     const role = input.role ?? "GUEST";
     if (role !== "GUEST" && role !== "HOST") {
-      throw new ValidationError("Role must be GUEST or HOST");
+      throw new ValidationError("O papel deve ser GUEST ou HOST");
     }
 
-    const hashedPassword = await bcrypt.hash(input.password, 12);
+    const hashedPassword = await this.passwordHasher.hash(input.password);
 
     const user = {
       id: randomUUID(),

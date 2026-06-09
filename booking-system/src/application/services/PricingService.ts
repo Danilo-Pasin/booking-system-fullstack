@@ -1,6 +1,7 @@
 import { Fee } from "../../domain/fees/Fee";
 
 export interface PricingBreakdown {
+  days: number;
   base: number;
   fees: { name: string; amount: number }[];
   total: number;
@@ -18,6 +19,6 @@ export class PricingService {
     const total =
       basePrice + appliedFees.reduce((sum, f) => sum + f.amount, 0);
 
-    return { base: basePrice, fees: appliedFees, total };
+    return { days: days ?? 0, base: basePrice, fees: appliedFees, total };
   }
 }

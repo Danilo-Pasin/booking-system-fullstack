@@ -28,7 +28,7 @@ export default function Navbar() {
           className="flex items-center gap-2 text-xl sm:text-2xl font-bold text-primary tracking-tight hover:opacity-80 transition"
         >
           <Building2 className="size-5 sm:size-6" />
-          Booking System
+          Sistema de Reservas
         </Link>
 
         <nav className="hidden sm:flex items-center gap-1 text-sm">
@@ -109,7 +109,7 @@ export default function Navbar() {
             <SheetHeader>
               <SheetTitle className="flex items-center gap-2">
                 <Building2 className="size-4" />
-                Booking System
+                Sistema de Reservas
               </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-2 p-6 pt-2">

@@ -10,16 +10,13 @@ import {
 
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
-import { setOnUnauthorized, fetchProfile } from "@/lib/api";
+import { setOnUnauthorized } from "@/lib/api";
 import type { User } from "@/lib/types";
-
-const TOKEN_KEY = "booking_token";
 
 type AuthContextType = {
   user: User | null;
-  token: string | null;
   isLoading: boolean;
-  login: (token: string, user: User) => void;
+  login: (user: User) => void;
   logout: () => void;
   updateUser: (data: Partial<User>) => void;
 };
@@ -35,39 +32,32 @@ export function AuthProvider({
 }) {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedToken = localStorage.getItem(TOKEN_KEY);
-    if (savedToken) {
-      fetchProfile(savedToken)
-        .then((profile) => {
-          setToken(savedToken);
+    fetch(
+      `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001"}/auth/me`,
+      { credentials: "include" },
+    )
+      .then((res) => (res.ok ? res.json() : null))
+      .then((profile) => {
+        if (profile) {
           setUser(profile);
-        })
-        .catch(() => {
-          localStorage.removeItem(TOKEN_KEY);
-        })
-        .finally(() => setIsLoading(false));
-    } else {
-      queueMicrotask(() => setIsLoading(false));
-    }
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsLoading(false));
   }, []);
 
   useEffect(() => {
     setOnUnauthorized(() => {
-      setToken(null);
       setUser(null);
-      localStorage.removeItem(TOKEN_KEY);
       toast.error("Sua sessão expirou. Faça login novamente.");
       router.push("/login");
     });
   }, [router]);
 
-  const handleLogin = useCallback((newToken: string, newUser: User) => {
-    localStorage.setItem(TOKEN_KEY, newToken);
-    setToken(newToken);
+  const handleLogin = useCallback((newUser: User) => {
     setUser(newUser);
   }, []);
 
@@ -87,8 +77,6 @@ export function AuthProvider({
     } catch {
       // cookie might already be invalid
     }
-    localStorage.removeItem(TOKEN_KEY);
-    setToken(null);
     setUser(null);
     router.push("/login");
   }
@@ -97,7 +85,6 @@ export function AuthProvider({
     <AuthContext.Provider
       value={{
         user,
-        token,
         isLoading,
         login: handleLogin,
         logout: handleLogout,

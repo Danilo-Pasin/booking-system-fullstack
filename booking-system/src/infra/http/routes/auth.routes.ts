@@ -25,20 +25,20 @@ export async function registerAuthRoutes(
       preHandler: [validate(registerSchema)],
       schema: {
         tags: ["Auth"],
-        summary: "Register a new user",
+        summary: "Registrar um novo usuário",
         body: {
           type: "object",
           required: ["name", "email", "password"],
           properties: {
             name: { type: "string", minLength: 2 },
             email: { type: "string", format: "email" },
-            password: { type: "string", minLength: 8, description: "Must contain at least one letter and one number" },
-            role: { type: "string", enum: ["GUEST", "HOST"], description: "Optional, defaults to GUEST" },
+            password: { type: "string", minLength: 8, description: "Deve conter ao menos uma letra e um número" },
+            role: { type: "string", enum: ["GUEST", "HOST"], description: "Opcional, padrão é GUEST" },
           },
         },
         response: {
           201: {
-            description: "User created",
+             description: "Usuário criado",
             type: "object",
             properties: {
               token: { type: "string" },
@@ -49,8 +49,8 @@ export async function registerAuthRoutes(
                   name: { type: "string" },
                   email: { type: "string" },
                   role: { type: "string", enum: ["GUEST", "HOST"] },
-                  avatarUrl: { type: "string" },
-                  bio: { type: "string" },
+                  avatarUrl: { type: "string", nullable: true },
+                  bio: { type: "string", nullable: true },
                   createdAt: { type: "string", format: "date-time" },
                 },
               },
@@ -95,7 +95,7 @@ export async function registerAuthRoutes(
       preHandler: [validate(loginSchema)],
       schema: {
         tags: ["Auth"],
-        summary: "Login",
+        summary: "Fazer login",
         body: {
           type: "object",
           required: ["email", "password"],
@@ -106,7 +106,7 @@ export async function registerAuthRoutes(
         },
         response: {
           200: {
-            description: "Login successful",
+             description: "Login realizado com sucesso",
             type: "object",
             properties: {
               token: { type: "string" },
@@ -117,8 +117,8 @@ export async function registerAuthRoutes(
                   name: { type: "string" },
                   email: { type: "string" },
                   role: { type: "string", enum: ["GUEST", "HOST"] },
-                  avatarUrl: { type: "string" },
-                  bio: { type: "string" },
+                  avatarUrl: { type: "string", nullable: true },
+                  bio: { type: "string", nullable: true },
                   createdAt: { type: "string", format: "date-time" },
                 },
               },
@@ -157,11 +157,11 @@ export async function registerAuthRoutes(
       preHandler: authenticate,
       schema: {
         tags: ["Auth"],
-        summary: "Upgrade current user to HOST",
+        summary: "Elevar usuário atual para HOST",
         security: [{ bearerAuth: [] }],
         response: {
           200: {
-            description: "Role upgraded to HOST",
+             description: "Papel elevado para HOST",
             type: "object",
             properties: {
               token: { type: "string" },
@@ -172,15 +172,15 @@ export async function registerAuthRoutes(
                   name: { type: "string" },
                   email: { type: "string" },
                   role: { type: "string", enum: ["HOST"] },
-                  avatarUrl: { type: "string" },
-                  bio: { type: "string" },
+                  avatarUrl: { type: "string", nullable: true },
+                  bio: { type: "string", nullable: true },
                   createdAt: { type: "string", format: "date-time" },
                 },
               },
             },
           },
           409: {
-            description: "Conflict — user is already a HOST",
+             description: "Conflito — usuário já é HOST",
             type: "object",
             properties: { error: { type: "string" } },
           },
@@ -211,7 +211,7 @@ export async function registerAuthRoutes(
       preHandler: authenticate,
       schema: {
         tags: ["Auth"],
-        summary: "Logout — clear auth cookie",
+        summary: "Sair — limpar cookie de autenticação",
         response: {
           200: {
             type: "object",
@@ -224,7 +224,7 @@ export async function registerAuthRoutes(
     },
     async (_request, reply) => {
       reply.clearCookie("token", { path: "/" });
-      return { message: "Logged out" };
+      return { message: "Desconectado" };
     },
   );
 }

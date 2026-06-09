@@ -44,10 +44,12 @@ export class InMemoryBookingRepository implements BookingRepository {
     this.store.set(booking.id, booking);
   }
 
-  async updateStatus(id: string, status: BookingStatus): Promise<BookingSummary> {
+  async updateStatus(id: string, status: BookingStatus, expectedStatus?: BookingStatus): Promise<BookingSummary> {
     const booking = this.store.get(id);
     if (!booking) throw new BookingNotFoundError();
-    if (booking.status !== "PENDING") throw new BookingNotPendingError(booking.status);
+    if (expectedStatus && booking.status !== expectedStatus) {
+      throw new BookingNotPendingError(booking.status);
+    }
     booking.status = status;
     return this.toSummary(booking);
   }

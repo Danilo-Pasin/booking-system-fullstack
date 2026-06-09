@@ -19,32 +19,33 @@ export const loginSchema = z.object({
 });
 
 export const bookingSchema = z.object({
-  accommodationId: z.string().min(1, "accommodationId is required"),
-  checkIn: z.string().date("checkIn must be a valid date (YYYY-MM-DD)"),
-  checkOut: z.string().date("checkOut must be a valid date (YYYY-MM-DD)"),
+  accommodationId: z.string().min(1, "accommodationId é obrigatório"),
+  checkIn: z.string().date("checkIn deve ser uma data válida (YYYY-MM-DD)"),
+  checkOut: z.string().date("checkOut deve ser uma data válida (YYYY-MM-DD)"),
 });
 
 export const createAccommodationSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  type: z.enum(["house", "apartment", "shared_room"], "Type must be one of: house, apartment, shared_room"),
-  pricePerNight: z.number().positive("pricePerNight must be a positive number"),
+  name: z.string().min(1, "Nome é obrigatório"),
+  type: z.enum(["house", "apartment", "shared_room"], "Tipo deve ser: house, apartment ou shared_room"),
+  pricePerNight: z.number().positive("pricePerNight deve ser um número positivo"),
   description: z.string().optional(),
-  imageUrl: z.string().url("imageUrl must be a valid URL").optional(),
-  images: z.array(z.string().url()).max(10, "Maximum of 10 images").optional(),
+  imageUrl: z.string().url("imageUrl deve ser uma URL válida").optional(),
+  images: z.array(z.string().url()).max(10, "Máximo de 10 imagens").optional(),
 });
 
 export const updateAccommodationSchema = z.object({
-  name: z.string().min(1).optional(),
-  pricePerNight: z.number().positive("pricePerNight must be a positive number").optional(),
+  name: z.string().min(1, "Nome é obrigatório").optional(),
+  pricePerNight: z.number().positive("pricePerNight deve ser um número positivo").optional(),
   description: z.string().optional(),
-  imageUrl: z.string().url("imageUrl must be a valid URL").optional(),
-  images: z.array(z.string().url()).max(10, "Maximum of 10 images").optional(),
+  imageUrl: z.string().url("imageUrl deve ser uma URL válida").optional(),
+  images: z.array(z.string().url()).max(10, "Máximo de 10 imagens").optional(),
 });
 
 export const updateProfileSchema = z.object({
   name: z.string().min(2, "O nome deve ter pelo menos 2 caracteres").optional(),
   avatarUrl: z.string().url("avatarUrl deve ser uma URL válida").optional().or(z.literal("")),
   bio: z.string().max(500, "A bio deve ter no máximo 500 caracteres").optional(),
+  images: z.array(z.string().url()).max(10, "Máximo de 10 imagens").optional(),
   currentPassword: z.string().optional(),
   newPassword: z
     .string()
@@ -67,6 +68,7 @@ export const imageResponseSchema = {
     id: { type: "string" },
     url: { type: "string" },
     order: { type: "number" },
+    isPrimary: { type: "boolean" },
   },
 };
 
