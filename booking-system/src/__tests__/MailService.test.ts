@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MailService } from "../infra/mail/MailService";
 
-vi.mock("nodemailer", () => {
-  const sendMailSpy = vi.fn().mockResolvedValue({
-    messageId: "mock-message-id",
-  });
+const sendMailSpy = vi.fn().mockResolvedValue({ messageId: "mock-message-id" });
 
+vi.mock("nodemailer", () => {
   const createTransport = vi.fn(() => ({
     sendMail: sendMailSpy,
   }));
@@ -47,9 +45,6 @@ describe("MailService", () => {
 
   it("sends email with correct parameters", async () => {
     await mailService.initialize();
-
-    const nodemailer = await import("nodemailer");
-    const sendMailSpy = (nodemailer.default.createTransport as ReturnType<typeof vi.fn>)().sendMail;
 
     await mailService.send("guest@test.com", "Subject", "<h1>Hello</h1>");
 

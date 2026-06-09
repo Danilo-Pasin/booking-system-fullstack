@@ -34,7 +34,7 @@ describe("ReservationEmailHandler", () => {
   let mailSender: MailSender;
   let userRepository: UserRepository;
   let handler: ReservationEmailHandler;
-  let sendSpy: ReturnType<typeof vi.fn>;
+  let sendSpy: MailSender["send"];
 
   const ownerId = "host-1";
   const guestId = "guest-1";
@@ -137,7 +137,7 @@ describe("ReservationEmailHandler", () => {
   });
 
   it("does not throw when mail sending fails (handler catches errors)", async () => {
-    sendSpy.mockRejectedValue(new Error("SMTP error"));
+    (sendSpy as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("SMTP error"));
     const event = new BookingCreatedEvent(booking);
 
     await expect(handler.handle(event)).resolves.toBeUndefined();
